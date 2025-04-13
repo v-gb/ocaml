@@ -811,8 +811,7 @@ end
 (** {1 Minimal support for Unicode characters in identifiers} *)
 
 module Uchar_more: sig
-   val string: Uchar.t -> string
-   val pp: Format.formatter -> Uchar.t -> unit
+   val to_source: Uchar.t -> string
 end
 
 

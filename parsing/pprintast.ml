@@ -355,7 +355,7 @@ let constant_desc f = function
   | Pconst_char i ->
       pp f "%C"  i
   | Pconst_uchar u ->
-      Misc.Uchar_more.pp f u
+     pp f "%s" (Misc.Uchar_more.to_source u)
   | Pconst_string (i, _, None) ->
       pp f "%S" i
   | Pconst_string (i, _, Some delim) ->

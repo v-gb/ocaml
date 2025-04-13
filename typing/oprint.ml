@@ -196,7 +196,7 @@ let print_out_value ppf tree =
     | Oval_nativeint i -> fprintf ppf "%nin" i
     | Oval_float f -> pp_print_string ppf (float_repres f)
     | Oval_char c -> fprintf ppf "%C" c
-    | Oval_uchar u -> fprintf ppf "'%s'" (Misc.Uchar_more.string u)
+    | Oval_uchar u -> pp_print_string ppf (Misc.Uchar_more.to_source u)
     | Oval_string (s, maxlen, kind) ->
        begin try
          let len = String.length s in

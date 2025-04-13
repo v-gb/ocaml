@@ -229,6 +229,12 @@ let digit_value c =
   | '0' .. '9' -> Char.code c - Char.code '0'
   | _ -> assert false
 
+let num_value_str ~base str =
+  String.fold_left (fun c char ->
+      let v = digit_value char in
+      assert(v < base);
+      (base * c) + v) 0 str
+
 let num_value lexbuf ~base ~first ~last =
   let c = ref 0 in
   for i = first to last do
@@ -274,23 +280,14 @@ let char_for_octal_code lexbuf i =
 let char_for_hexadecimal_code lexbuf i =
   Char.chr (num_value lexbuf ~base:16 ~first:i ~last:(i+1))
 
-let uchar_for_uchar_escape ~first ~last lexbuf =
-  let digit_count = last - first + 1 in
-  match digit_count > 6 with
-  | true ->
-      illegal_escape lexbuf
-        "too many digits, expected 1 to 6 hexadecimal digits"
-  | false ->
-      let cp = num_value lexbuf ~base:16 ~first ~last in
-      if Uchar.is_valid cp then Uchar.unsafe_of_int cp else
-      illegal_escape lexbuf
-        (Printf.sprintf "%X is not a Unicode scalar value" cp)
-
-let uchar_for_string_uchar_escape lexbuf =
-  let len = Lexing.lexeme_end lexbuf - Lexing.lexeme_start lexbuf in
-  let first = 3 (* skip opening \u{ *) in
-  let last = len - 2 (* skip closing } *) in
-  uchar_for_uchar_escape ~first ~last lexbuf
+let uchar_for_uchar_escape lexbuf s =
+  if String.length s > 6
+  then illegal_escape lexbuf
+         "too many digits, expected 1 to 6 hexadecimal digits";
+  let cp = num_value_str ~base:16 s in
+  if Uchar.is_valid cp then Uchar.unsafe_of_int cp else
+    illegal_escape lexbuf
+      (Printf.sprintf "%X is not a Unicode scalar value" cp)
 
 let validate_encoding lexbuf raw_name =
   match Utf8_lexeme.normalize raw_name with
@@ -451,6 +448,7 @@ let () =
           None
     )
 
+let char_or_uchar c ~u = if u = "" then CHAR c else UCHAR (Uchar.of_char c)
 }
 
 let newline = ('\013'* '\010')
@@ -595,15 +593,25 @@ rule token = parse
         let s, loc = wrap_string_lexer (quoted_string delim) lexbuf in
         let idloc = compute_quoted_string_idloc orig_loc 3 id in
         QUOTED_STRING_ITEM (id, idloc, s, loc, Some delim) }
-  | "\'" newline "\'"
+  | "\'" newline "\'" ("u" | "" as u)
       { update_loc lexbuf None 1 false 1;
         (* newline is ('\013'* '\010') *)
-        CHAR '\n' }
-  | "\'" ([^ '\\' '\'' '\010' '\013'] as c) "\'"
-      { CHAR c }
-  | "\'" ([^ '\\' '\'' '\010' '\013'] as c) "\'"
-      { CHAR c }
-  | "\'" (utf8 as s) "\'"
+        char_or_uchar '\n' ~u }
+  | "\'" ([^ '\\' '\'' '\010' '\013'] as c) "\'" ("u" | "" as u)
+      { char_or_uchar c ~u }
+  | "\'\\" (['\\' '\'' '\"' 'n' 't' 'b' 'r' ' '] as c) "\'" ("u" | "" as u)
+      { char_or_uchar (char_for_backslash c) ~u }
+  | "\'\\" ['0'-'9'] ['0'-'9'] ['0'-'9'] "\'" ("u" | "" as u)
+      { char_or_uchar (char_for_decimal_code lexbuf 2) ~u }
+  | "\'\\" 'o' ['0'-'7'] ['0'-'7'] ['0'-'7'] "\'" ("u" | "" as u)
+      { char_or_uchar (char_for_octal_code lexbuf 3) ~u }
+  | "\'\\" 'x' ['0'-'9' 'a'-'f' 'A'-'F'] ['0'-'9' 'a'-'f' 'A'-'F'] "\'" ("u" | "" as u)
+      { char_or_uchar (char_for_hexadecimal_code lexbuf 3) ~u }
+  | "\'" ("\\" [^ '#'] as esc)
+      { error lexbuf (Illegal_escape (esc, None)) }
+  | "\'\'"
+      { error lexbuf Empty_character_literal }
+  | "\'" (utf8 as s) "\'u"
       {
       let d = String.get_utf_8_uchar s 0 in
       let l = Uchar.utf_decode_length d in
@@ -613,26 +621,8 @@ rule token = parse
         let u = Uchar.utf_decode_uchar d in
         UCHAR u
       }
-  | "\'U+" ['0'-'9' 'a'-'f' 'A'-'F']['0'-'9' 'a'-'f' 'A'-'F']
-           ['0'-'9' 'a'-'f' 'A'-'F']['0'-'9' 'a'-'f' 'A'-'F'] "\'"
-      { UCHAR (uchar_for_uchar_escape lexbuf ~first:3 ~last:6) }
-  | "\'U+" ['0'-'9' 'a'-'f' 'A'-'F']['0'-'9' 'a'-'f' 'A'-'F']
-           ['0'-'9' 'a'-'f' 'A'-'F']['0'-'9' 'a'-'f' 'A'-'F']
-           ['0'-'9' 'a'-'f' 'A'-'F']['0'-'9' 'a'-'f' 'A'-'F'] "\'"
-      { UCHAR (uchar_for_uchar_escape lexbuf ~first:3 ~last:8) }
-
-  | "\'\\" (['\\' '\'' '\"' 'n' 't' 'b' 'r' ' '] as c) "\'"
-      { CHAR (char_for_backslash c) }
-  | "\'\\" ['0'-'9'] ['0'-'9'] ['0'-'9'] "\'"
-      { CHAR(char_for_decimal_code lexbuf 2) }
-  | "\'\\" 'o' ['0'-'7'] ['0'-'7'] ['0'-'7'] "\'"
-      { CHAR(char_for_octal_code lexbuf 3) }
-  | "\'\\" 'x' ['0'-'9' 'a'-'f' 'A'-'F'] ['0'-'9' 'a'-'f' 'A'-'F'] "\'"
-      { CHAR(char_for_hexadecimal_code lexbuf 3) }
-  | "\'" ("\\" [^ '#'] as esc)
-      { error lexbuf (Illegal_escape (esc, None)) }
-  | "\'\'"
-      { error lexbuf Empty_character_literal }
+  | "\'" ('\\' 'u' '{' (hex_digit+ as s) '}') "\'u"
+      { UCHAR (uchar_for_uchar_escape lexbuf s) }
   | "(*"
       { let s, loc = wrap_comment_lexer comment lexbuf in
         COMMENT (s, loc) }
@@ -880,8 +870,8 @@ and string = parse
   | '\\' 'x' ['0'-'9' 'a'-'f' 'A'-'F'] ['0'-'9' 'a'-'f' 'A'-'F']
       { store_escaped_char lexbuf (char_for_hexadecimal_code lexbuf 2);
          string lexbuf }
-  | '\\' 'u' '{' hex_digit+ '}'
-        { store_escaped_uchar lexbuf (uchar_for_string_uchar_escape lexbuf);
+  | '\\' 'u' '{' (hex_digit+ as s) '}'
+        { store_escaped_uchar lexbuf (uchar_for_uchar_escape lexbuf s);
           string lexbuf }
   | '\\' _
       { if not (in_comment ()) then begin
