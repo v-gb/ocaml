@@ -3558,28 +3558,25 @@ extension_constructor_rebind(opening):
 /* "with" constraints (additional type equations over signature components) */
 
 with_constraint:
-    TYPE type_parameters mkrhs(label_longident) with_type_binder
-    core_type_no_attr constraints
-      { let lident = loc_last $3 in
-        Pwith_type
-          ($3,
-           (Type.mk lident
-              ~params:$2
-              ~cstrs:$6
-              ~manifest:$5
-              ~priv:$4
+  TYPE params = type_parameters
+       lident = mkrhs(label_longident)
+       priv = with_type_binder
+       manifest = core_type_no_attr
+       cstrs = constraints
+      { Pwith_type
+          (lident,
+           (Type.mk (loc_last lident) ~params ~cstrs ~manifest ~priv
               ~loc:(make_loc $sloc))) }
     /* used label_longident instead of type_longident to disallow
        functor applications in type path */
-  | TYPE type_parameters mkrhs(label_longident)
-    COLONEQUAL core_type_no_attr
-      { let lident = loc_last $3 in
-        Pwith_typesubst
-         ($3,
-           (Type.mk lident
-              ~params:$2
-              ~manifest:$5
-              ~loc:(make_loc $sloc))) }
+  | TYPE params = type_parameters 
+         lident = mkrhs(label_longident)
+         COLONEQUAL
+         manifest = core_type_no_attr
+      { Pwith_typesubst
+         (lident,
+          (Type.mk (loc_last lident) ~params ~manifest
+             ~loc:(make_loc $sloc))) }
   | MODULE mkrhs(mod_longident) EQUAL mkrhs(mod_ext_longident)
       { Pwith_module ($2, $4) }
   | MODULE mkrhs(mod_longident) COLONEQUAL mkrhs(mod_ext_longident)
