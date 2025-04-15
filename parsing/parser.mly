@@ -738,7 +738,7 @@ let mk_directive ~loc name arg =
 %token BARRBRACKET            "|]"
 %token BEGIN                  "begin"
 %token <char> CHAR            "'a'" (* just an example *)
-%token <Uchar.t> UCHAR        "'字'u"
+%token <Uchar.t> UCHAR        "u'字'"
 %token CLASS                  "class"
 %token COLON                  ":"
 %token COLONCOLON             "::"

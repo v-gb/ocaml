@@ -535,6 +535,36 @@ rule token = parse
         check_label_name ~raw_escape:(escape<>"") lexbuf name;
         OPTLABEL name
       }
+  | ("u" | "" as u) "\'" newline "\'"
+      { update_loc lexbuf None 1 false 1;
+        (* newline is ('\013'* '\010') *)
+        char_or_uchar '\n' ~u }
+  | ("u" | "" as u) "\'" ([^ '\\' '\'' '\010' '\013'] as c) "\'"
+      { char_or_uchar c ~u }
+  | ("u" | "" as u) "\'\\" (['\\' '\'' '\"' 'n' 't' 'b' 'r' ' '] as c) "\'"
+      { char_or_uchar (char_for_backslash c) ~u }
+  | ("u" | "" as u) "\'\\" ['0'-'9'] ['0'-'9'] ['0'-'9'] "\'"
+      { char_or_uchar (char_for_decimal_code lexbuf 2) ~u }
+  | ("u" | "" as u) "\'\\" 'o' ['0'-'7'] ['0'-'7'] ['0'-'7'] "\'"
+      { char_or_uchar (char_for_octal_code lexbuf 3) ~u }
+  | ("u" | "" as u) "\'\\" 'x' ['0'-'9' 'a'-'f' 'A'-'F'] ['0'-'9' 'a'-'f' 'A'-'F'] "\'"
+      { char_or_uchar (char_for_hexadecimal_code lexbuf 3) ~u }
+  | "\'" ("\\" [^ '#'] as esc)
+      { error lexbuf (Illegal_escape (esc, None)) }
+  | "\'\'"
+      { error lexbuf Empty_character_literal }
+  | "u\'" (utf8 as s) "\'"
+      {
+      let d = String.get_utf_8_uchar s 0 in
+      let l = Uchar.utf_decode_length d in
+      if l < String.length s || not (Uchar.utf_decode_is_valid d) then
+        error lexbuf (Invalid_literal s)
+      else
+        let u = Uchar.utf_decode_uchar d in
+        UCHAR u
+      }
+  | "u\'" ('\\' 'u' '{' (hex_digit+ as s) '}') "\'"
+      { UCHAR (uchar_for_uchar_escape lexbuf s) }
   | lowercase identchar * as name
       { find_keyword lexbuf name }
   | uppercase identchar * as name
@@ -593,36 +623,6 @@ rule token = parse
         let s, loc = wrap_string_lexer (quoted_string delim) lexbuf in
         let idloc = compute_quoted_string_idloc orig_loc 3 id in
         QUOTED_STRING_ITEM (id, idloc, s, loc, Some delim) }
-  | "\'" newline "\'" ("u" | "" as u)
-      { update_loc lexbuf None 1 false 1;
-        (* newline is ('\013'* '\010') *)
-        char_or_uchar '\n' ~u }
-  | "\'" ([^ '\\' '\'' '\010' '\013'] as c) "\'" ("u" | "" as u)
-      { char_or_uchar c ~u }
-  | "\'\\" (['\\' '\'' '\"' 'n' 't' 'b' 'r' ' '] as c) "\'" ("u" | "" as u)
-      { char_or_uchar (char_for_backslash c) ~u }
-  | "\'\\" ['0'-'9'] ['0'-'9'] ['0'-'9'] "\'" ("u" | "" as u)
-      { char_or_uchar (char_for_decimal_code lexbuf 2) ~u }
-  | "\'\\" 'o' ['0'-'7'] ['0'-'7'] ['0'-'7'] "\'" ("u" | "" as u)
-      { char_or_uchar (char_for_octal_code lexbuf 3) ~u }
-  | "\'\\" 'x' ['0'-'9' 'a'-'f' 'A'-'F'] ['0'-'9' 'a'-'f' 'A'-'F'] "\'" ("u" | "" as u)
-      { char_or_uchar (char_for_hexadecimal_code lexbuf 3) ~u }
-  | "\'" ("\\" [^ '#'] as esc)
-      { error lexbuf (Illegal_escape (esc, None)) }
-  | "\'\'"
-      { error lexbuf Empty_character_literal }
-  | "\'" (utf8 as s) "\'u"
-      {
-      let d = String.get_utf_8_uchar s 0 in
-      let l = Uchar.utf_decode_length d in
-      if l < String.length s || not (Uchar.utf_decode_is_valid d) then
-        error lexbuf (Invalid_literal s)
-      else
-        let u = Uchar.utf_decode_uchar d in
-        UCHAR u
-      }
-  | "\'" ('\\' 'u' '{' (hex_digit+ as s) '}') "\'u"
-      { UCHAR (uchar_for_uchar_escape lexbuf s) }
   | "(*"
       { let s, loc = wrap_comment_lexer comment lexbuf in
         COMMENT (s, loc) }

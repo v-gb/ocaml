@@ -283,7 +283,7 @@ module Uchar_more = struct
       Buffer.add_utf_8_uchar b u;
       Buffer.contents b
 
-  let to_source u = "'" ^ escaped u ^ "'u"
+  let to_source u = "u'" ^ escaped u ^ "'"
 end
 
 module Utf8_lexeme = struct

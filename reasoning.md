@@ -82,24 +82,31 @@ oneself in a corner):
 
 Thinking:
 
-IMO the clear best syntax is `u'é'`. But it can require sensible code as shown above to
-be rewritten in a weird way, which even if such cases don't show up in opam, seems like
-a deal breaker since I see no clear solution.
+IMO the clear best syntax is `u'é'`, due it being left-to-right, and being consistent
+with hypothetical future extension where strings are prefixed as shown above (a suffix
+is consistent with integers, but it's more useful to have char/string be alike than
+char/integers be alike). But it can require sensible code like `f u' 'a'` to be
+rewritten in a weird way.
 
 I'd say the next best syntaxes are `'é'u` or `U"é"`. I tried both on my code, and
-they're both fine. I think I might prefer `U"é"` marginally, but `'é'u` is probably
-more self-evident.
+they're both fine.
+
+I initially thought that the problem with `u'é'` seemed too weird to ignore, so I
+suggested `'é'u`. But after more thinking, this trades a nicer syntax to avoid a
+problem that won't show up in practice. And if we went with `u'é'`, should the
+weirdness ever happen and be deemed worth tackling (as opposed to just writing
+`f u' ('a')`), a possible design would be to replace `'e'` by `c'e'` to fix the
+issue, meaning it's at least technically fixable.
 
 Takeaway:
 
-I suggest: `'é'u`, with the lexer special-casing the `u` suffix (no clear use case for
-an arbitrary suffix, since the "payload" of a char/uchar literal is so restricted, and
-it's not clear what payload should be allowed for an arbitrary suffix. I suspect that
-supporting any text until a closing quote would break the parsing of type variables).
+I suggest: `u'é'`, with the lexer special-casing the `u` prefix. (no clear use case for
+an arbitrary prefix, since the "payload" of a char/uchar literal is so restricted, and
+it's not clear what payload should be allowed for an arbitrary suffix. It would also
+encroach on variable names potentially in use).
 
-The question left is whether to tokenize `'é'uabc` as `'é' uabc` or `'é'u abc`. I think
-no one should write this, so any parse will do, and ideally we'd emit a warning. In
-practice, it's easier to use the first interpretation and to write the warning later,
-if ever.
+The question left is whether to tokenize `u'é'abc` as uchar+lident or just lident. I
+think it doesn't really matter, and it's easiest thing to implement is lident, so
+that's what we'll do.
 
 Since this bit of syntax is absent from opam, there's nothing more to do.
