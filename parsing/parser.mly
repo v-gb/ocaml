@@ -1956,11 +1956,11 @@ module_type_subst:
   ext = ext
   attrs1 = attributes
   virt = virtual_flag
-  params = formal_class_parameters
-  id = mkrhs(LIDENT)
+  params_id = formal_class_params_and_ident
   body = class_fun_binding
   attrs2 = post_item_attributes
   {
+    let params, id = params_id in
     let attrs = attrs1 @ attrs2 in
     let loc = make_loc $sloc in
     let docs = symbol_docs $sloc in
@@ -1972,11 +1972,11 @@ module_type_subst:
   AND
   attrs1 = attributes
   virt = virtual_flag
-  params = formal_class_parameters
-  id = mkrhs(LIDENT)
+  params_id = formal_class_params_and_ident
   body = class_fun_binding
   attrs2 = post_item_attributes
   {
+    let params, id = params_id in
     let attrs = attrs1 @ attrs2 in
     let loc = make_loc $sloc in
     let docs = symbol_docs $sloc in
@@ -1996,9 +1996,12 @@ class_fun_binding:
     ) { $1 }
 ;
 
-formal_class_parameters:
-  params = class_parameters(type_parameter)
-    { params }
+formal_class_params_and_ident:
+  params = class_parameters(type_parameter) id = mkrhs(LIDENT)
+  { params, id }
+| id = mkrhs(LIDENT)
+  LESS params = separated_nonempty_llist(COMMA, type_parameter) GREATER
+  { params, id }
 ;
 
 (* -------------------------------------------------------------------------- *)
@@ -2025,14 +2028,17 @@ class_expr:
         { Pcl_extension $1 }
     ) { $1 }
 ;
+
+
+
 class_simple_expr:
   | LPAREN class_expr RPAREN
       { $2 }
   | LPAREN class_expr error
       { unclosed "(" $loc($1) ")" $loc($3) }
   | mkclass(
-      tys = actual_class_parameters cid = mkrhs(class_longident)
-        { Pcl_constr(cid, tys) }
+      tys_cid = actual_class_params_and_name
+        { let tys, cid = tys_cid in Pcl_constr(cid, tys) }
     | OBJECT attributes class_structure error
         { unclosed "object" $loc($1) "end" $loc($4) }
     | LPAREN class_expr COLON class_type RPAREN
@@ -2155,8 +2161,8 @@ class_type:
  ;
 class_signature:
     mkcty(
-      tys = actual_class_parameters cid = mkrhs(clty_longident)
-        { Pcty_constr (cid, tys) }
+      tys_cid = actual_class_params_and_name
+        { let tys, cid = tys_cid in Pcty_constr (cid, tys) }
     | extension
         { Pcty_extension $1 }
     ) { $1 }
@@ -2177,9 +2183,13 @@ class_signature:
   | LBRACKET params = separated_nonempty_llist(COMMA, parameter) RBRACKET
       { params }
 ;
-%inline actual_class_parameters:
-  tys = class_parameters(core_type)
-    { tys }
+
+%inline actual_class_params_and_name:
+  | tys = class_parameters(core_type) cid = mkrhs(clty_longident)
+    { tys, cid }
+  | cid = mkrhs(clty_longident)
+    LESS tys = separated_nonempty_llist(COMMA, core_type) GREATER
+    { tys, cid }
 ;
 %inline class_sig_body:
     class_self_type extra_csig(class_sig_fields)
@@ -2240,17 +2250,18 @@ constrain_field:
   xlist(class_description, and_class_description)
     { $1 }
 ;
+
 %inline class_description:
   CLASS
   ext = ext
   attrs1 = attributes
   virt = virtual_flag
-  params = formal_class_parameters
-  id = mkrhs(LIDENT)
+  params_id = formal_class_params_and_ident
   COLON
   cty = class_type
   attrs2 = post_item_attributes
     {
+      let params, id = params_id in
       let attrs = attrs1 @ attrs2 in
       let loc = make_loc $sloc in
       let docs = symbol_docs $sloc in
@@ -2262,12 +2273,12 @@ constrain_field:
   AND
   attrs1 = attributes
   virt = virtual_flag
-  params = formal_class_parameters
-  id = mkrhs(LIDENT)
+  params_id = formal_class_params_and_ident
   COLON
   cty = class_type
   attrs2 = post_item_attributes
     {
+      let params, id = params_id in
       let attrs = attrs1 @ attrs2 in
       let loc = make_loc $sloc in
       let docs = symbol_docs $sloc in
@@ -2284,12 +2295,12 @@ class_type_declarations:
   ext = ext
   attrs1 = attributes
   virt = virtual_flag
-  params = formal_class_parameters
-  id = mkrhs(LIDENT)
+  params_id = formal_class_params_and_ident
   EQUAL
   csig = class_signature
   attrs2 = post_item_attributes
     {
+      let params, id = params_id in
       let attrs = attrs1 @ attrs2 in
       let loc = make_loc $sloc in
       let docs = symbol_docs $sloc in
@@ -2301,12 +2312,12 @@ class_type_declarations:
   AND
   attrs1 = attributes
   virt = virtual_flag
-  params = formal_class_parameters
-  id = mkrhs(LIDENT)
+  params_id = formal_class_params_and_ident
   EQUAL
   csig = class_signature
   attrs2 = post_item_attributes
     {
+      let params, id = params_id in
       let attrs = attrs1 @ attrs2 in
       let loc = make_loc $sloc in
       let docs = symbol_docs $sloc in
