@@ -713,6 +713,20 @@ let mk_directive ~loc name arg =
       pdir_loc = make_loc loc;
     }
 
+let expecting_lident_from_longident lident =
+  (* In the call sites of this function, say the production for [type t = int],
+     we allow [type A.t = int], which is more permissive than desired, hence we
+     reject the undesired ast. It'd be better to restrict the grammar, but it
+     creates a shift reduce conflict with [type A.t += ...] in the case of
+     parameterized types in the ltr syntax: [type t('a)] vs [type t('a) +=
+     ...]. By making these two production identical, the parser can shift in
+     both cases (i.e. no conflict) until it sees the right hand sides. *)
+  { lident
+    with txt =
+           match lident.txt with
+           | Lident s -> s
+           | _ -> not_expecting (lident.loc.loc_start, lident.loc.loc_end)
+                    "qualified path" }
 %}
 
 /* Tokens */
@@ -3279,12 +3293,13 @@ generic_type_declaration(flag, kind):
   ext = ext
   attrs1 = attributes
   flag = flag
-  params = type_parameters
-  id = mkrhs(LIDENT)
+  params_id = type_parameters_and_ident(mkrhs(type_longident))
   kind_priv_manifest = kind
   cstrs = constraints
   attrs2 = post_item_attributes
     {
+      let params, longid = params_id in
+      let id = expecting_lident_from_longident longid in
       let (kind, priv, manifest) = kind_priv_manifest in
       let docs = symbol_docs $sloc in
       let attrs = attrs1 @ attrs2 in
@@ -3296,12 +3311,13 @@ generic_type_declaration(flag, kind):
 %inline generic_and_type_declaration(kind):
   AND
   attrs1 = attributes
-  params = type_parameters
-  id = mkrhs(LIDENT)
+  params_id = type_parameters_and_ident(mkrhs(type_longident))
   kind_priv_manifest = kind
   cstrs = constraints
   attrs2 = post_item_attributes
     {
+      let params, longid = params_id in
+      let id = expecting_lident_from_longident longid in
       let (kind, priv, manifest) = kind_priv_manifest in
       let docs = symbol_docs $sloc in
       let attrs = attrs1 @ attrs2 in
@@ -3349,14 +3365,20 @@ type_kind:
     COLONEQUAL nonempty_type_kind
       { $2 }
 ;
-type_parameters:
-    /* empty */
-      { [] }
-  | p = type_parameter
-      { [p] }
+
+type_parameters_and_ident(ident):
+  | ident = ident
+    { [],  ident }
+  | p = type_parameter ident = ident
+    { [p], ident }
   | LPAREN ps = separated_nonempty_llist(COMMA, type_parameter) RPAREN
-      { ps }
+    ident = ident
+    { ps, ident }
+  | ident = ident
+    LPAREN ps = separated_nonempty_llist(COMMA, type_parameter) RPAREN
+    { ps, ident }
 ;
+
 type_parameter:
     type_variance type_variable        { $2, $1 }
 ;
@@ -3520,13 +3542,13 @@ label_declaration_semi:
   ext = ext
   attrs1 = attributes
   no_nonrec_flag
-  params = type_parameters
-  tid = mkrhs(type_longident)
+  params_tid = type_parameters_and_ident(mkrhs(type_longident))
   PLUSEQ
   priv = private_flag
   cs = bar_llist(declaration)
   attrs2 = post_item_attributes
-    { let docs = symbol_docs $sloc in
+    { let params, tid = params_tid in
+      let docs = symbol_docs $sloc in
       let attrs = attrs1 @ attrs2 in
       let loc = make_loc $sloc in
       Te.mk tid cs ~params ~priv ~attrs ~docs ~loc,
@@ -3558,22 +3580,22 @@ extension_constructor_rebind(opening):
 /* "with" constraints (additional type equations over signature components) */
 
 with_constraint:
-  TYPE params = type_parameters
-       lident = mkrhs(label_longident)
+  TYPE params_lident = type_parameters_and_ident(mkrhs(label_longident))
        priv = with_type_binder
        manifest = core_type_no_attr
        cstrs = constraints
-      { Pwith_type
+      { let params, lident = params_lident in
+        Pwith_type
           (lident,
            (Type.mk (loc_last lident) ~params ~cstrs ~manifest ~priv
               ~loc:(make_loc $sloc))) }
     /* used label_longident instead of type_longident to disallow
        functor applications in type path */
-  | TYPE params = type_parameters 
-         lident = mkrhs(label_longident)
+  | TYPE params_lident = type_parameters_and_ident(mkrhs(label_longident))
          COLONEQUAL
          manifest = core_type_no_attr
-      { Pwith_typesubst
+      { let params, lident = params_lident in
+        Pwith_typesubst
          (lident,
           (Type.mk (loc_last lident) ~params ~manifest
              ~loc:(make_loc $sloc))) }
@@ -3830,13 +3852,11 @@ atomic_type:
   | type_ = delimited_type
       { type_ }
   | mktyp( /* begin mktyp group */
-      tys = actual_type_parameters
-      tid = mkrhs(type_longident)
-        { Ptyp_constr (tid, tys) }
-    | tys = actual_type_parameters
-      HASH
-      cid = mkrhs(clty_longident)
-        { Ptyp_class (cid, tys) }
+      tys_tid = actual_type_parameters_and_ident(mkrhs(type_longident))
+        { let tys, tid = tys_tid in Ptyp_constr (tid, tys) }
+    | tys_cid = actual_type_parameters_and_ident(
+                  HASH v=mkrhs(clty_longident) { v })
+        { let tys, cid = tys_cid in Ptyp_class (cid, tys) }
     | mod_ident = mkrhs(mod_ext_longident)
       DOT
       type_ = delimited_type_supporting_local_open
@@ -3849,9 +3869,9 @@ atomic_type:
   { $1 } /* end mktyp group */
 ;
 
-(* This is the syntax of the actual type parameters in an application of
-   a type constructor, such as int, int list, or (int, bool) Hashtbl.t.
-   We allow one of the following:
+(* This is the syntax for applying a constructor to type arguments,
+   such as int, int list, or (int, bool) Hashtbl.t
+   We allow one of the following actual type parameters:
    - zero parameters;
    - one parameter:
      an atomic type;
@@ -3859,13 +3879,17 @@ atomic_type:
    - two or more parameters:
      arbitrary types, between parentheses, separated with commas.
  *)
-%inline actual_type_parameters:
-  | /* empty */
-      { [] }
-  | ty = atomic_type
-      { [ ty ] }
+%inline actual_type_parameters_and_ident(ident):
+  | ident = ident
+      { [], ident }
+  | ty = atomic_type ident = ident
+      { [ ty ], ident }
   | LPAREN tys = separated_nontrivial_llist(COMMA, core_type) RPAREN
-      { tys }
+    ident = ident
+      { tys, ident }
+  | ident = ident
+    LPAREN tys = separated_nonempty_llist(COMMA, core_type) RPAREN
+      { tys, ident }
 ;
 
 %inline package_type_: module_type

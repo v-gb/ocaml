@@ -818,8 +818,8 @@ File "implementation: LBRACKETPERCENTPERCENT WITH COLON TYPE NONREC LIDENT LET",
 Error: Syntax error
 File "implementation: LBRACKETPERCENTPERCENT WITH COLON TYPE PERCENT AND BACKQUOTE", line 1, characters 22-23:
 Error: Syntax error
-File "implementation: LBRACKETPERCENTPERCENT WITH COLON TYPE UIDENT DOT LIDENT WITH", line 1, characters 32-36:
-Error: Syntax error
+File "implementation: LBRACKETPERCENTPERCENT WITH COLON TYPE UIDENT DOT LIDENT WITH", line 1, characters 16-31:
+Error: Syntax error: qualified path not expected.
 File "implementation: LBRACKETPERCENTPERCENT WITH COLON TYPE UNDERSCORE LETOP", line 1, characters 18-22:
 Error: Syntax error
 File "implementation: LBRACKETPERCENTPERCENT WITH COLON TYPE WITH", line 1, characters 16-20:
@@ -2145,8 +2145,8 @@ File "implementation: TYPE PREFIXOP WITH", line 1, characters 8-12:
 Error: Syntax error
 File "implementation: TYPE QUOTE WITH", line 1, characters 7-11:
 Error: Syntax error
-File "implementation: TYPE UIDENT DOT LIDENT WITH", line 1, characters 21-25:
-Error: Syntax error
+File "implementation: TYPE UIDENT DOT LIDENT WITH", line 1, characters 5-20:
+Error: Syntax error: qualified path not expected.
 File "implementation: TYPE UIDENT DOT WITH", line 1, characters 14-18:
 Error: Syntax error
 File "implementation: TYPE UIDENT LPAREN UIDENT DOT WITH", line 1, characters 23-27:
