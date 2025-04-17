@@ -17,7 +17,7 @@ type shape =
   | Function
   | Lazy
   | Class
-  | Module of shape array
+  | Module of array(shape)
   | Value of Obj.t
 
 let rec init_mod_field modu i loc shape =

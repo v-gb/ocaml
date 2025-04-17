@@ -135,7 +135,7 @@ external to_int : int64 -> int = "%int64_to_int"
    is taken modulo 2{^31}, i.e. the top 33 bits are lost
    during the conversion. *)
 
-val unsigned_to_int : int64 -> int option
+val unsigned_to_int : int64 -> option(int)
 (** Same as {!to_int}, but interprets the argument as an {e unsigned} integer.
     Returns [None] if the unsigned value of the argument cannot fit into an
     [int].
@@ -194,7 +194,7 @@ external of_string : string -> int64 = "caml_int64_of_string"
    a valid representation of an integer, or if the integer represented
    exceeds the range of integers representable in type [int64]. *)
 
-val of_string_opt: string -> int64 option
+val of_string_opt: string -> option(int64)
 (** Same as [of_string], but return [None] instead of raising.
     @since 4.05 *)
 

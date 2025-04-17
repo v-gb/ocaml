@@ -47,19 +47,19 @@ open! Stdlib
 *)
 
 (* An alias for the type of immutable arrays. *)
-type +'a t = 'a iarray
+type t(+'a) = iarray('a)
 
 (* Array operations *)
 
-external length : 'a iarray -> int = "%array_length"
-external get : 'a iarray -> int -> 'a = "%array_safe_get"
-external unsafe_get : 'a iarray -> int -> 'a = "%array_unsafe_get"
-external concat : 'a iarray list -> 'a iarray = "caml_array_concat"
+external length : iarray('a) -> int = "%array_length"
+external get : iarray('a) -> int -> 'a = "%array_safe_get"
+external unsafe_get : iarray('a) -> int -> 'a = "%array_unsafe_get"
+external concat : list(iarray('a)) -> iarray('a) = "caml_array_concat"
 
-external append_prim : 'a iarray -> 'a iarray -> 'a iarray = "caml_array_append"
-external unsafe_sub : 'a iarray -> int -> int -> 'a iarray = "caml_array_sub"
-external unsafe_of_array : 'a array -> 'a iarray = "%opaque"
-external unsafe_to_array : 'a iarray -> 'a array = "%opaque"
+external append_prim : iarray('a) -> iarray('a) -> iarray('a) = "caml_array_append"
+external unsafe_sub : iarray('a) -> int -> int -> iarray('a) = "caml_array_sub"
+external unsafe_of_array : array('a) -> iarray('a) = "%opaque"
+external unsafe_to_array : iarray('a) -> array('a) = "%opaque"
 
 let init l f = unsafe_of_array (Array.init l f)
 
@@ -273,7 +273,7 @@ let find_mapi f a =
   loop 0
 
 let split x =
-  if equal (=) (* unused *) x [||] then ([||], [||] : _ iarray * _ iarray)
+  if equal (=) (* unused *) x [||] then ([||], [||] : iarray(_) * iarray(_))
   else begin
     let a0, b0 = unsafe_get x 0 in
     let n = length x in

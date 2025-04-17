@@ -18,7 +18,7 @@
 
 (** {1 Low-level functions} *)
 
-type !'a t
+type t(!'a)
 (** The type of arrays of weak pointers (weak arrays).  A weak
    pointer is a value that the garbage collector may erase whenever
    the value is not used any more (through normal pointers) by the
@@ -37,31 +37,31 @@ type !'a t
 *)
 
 
-val create : int -> 'a t
+val create : int -> t('a)
 (** [Weak.create n] returns a new weak array of length [n].
    All the pointers are initially empty.
    @raise Invalid_argument
    if [n] is not comprised between zero and
    {!Obj.Ephemeron.max_ephe_length} (limits included).*)
 
-val length : 'a t -> int
+val length : t('a) -> int
 (** [Weak.length ar] returns the length (number of elements) of
    [ar].*)
 
-val set : 'a t -> int -> 'a option -> unit
+val set : t('a) -> int -> option('a) -> unit
 (** [Weak.set ar n (Some el)] sets the [n]th cell of [ar] to be a
    (full) pointer to [el]; [Weak.set ar n None] sets the [n]th
    cell of [ar] to empty.
    @raise Invalid_argument if [n] is not in the range
    0 to {!Weak.length}[ ar - 1].*)
 
-val get : 'a t -> int -> 'a option
+val get : t('a) -> int -> option('a)
 (** [Weak.get ar n] returns None if the [n]th cell of [ar] is
    empty, [Some x] (where [x] is the value) if it is full.
    @raise Invalid_argument if [n] is not in the range
    0 to {!Weak.length}[ ar - 1].*)
 
-val get_copy : 'a t -> int -> 'a option
+val get_copy : t('a) -> int -> option('a)
 (** [Weak.get_copy ar n] returns None if the [n]th cell of [ar] is
    empty, [Some x] (where [x] is a (shallow) copy of the value) if
    it is full.
@@ -77,20 +77,20 @@ val get_copy : 'a t -> int -> 'a option
 *)
 
 
-val check : 'a t -> int -> bool
+val check : t('a) -> int -> bool
 (** [Weak.check ar n] returns [true] if the [n]th cell of [ar] is
    full, [false] if it is empty.  Note that even if [Weak.check ar n]
    returns [true], a subsequent {!Weak.get}[ ar n] can return [None].
    @raise Invalid_argument if [n] is not in the range
    0 to {!Weak.length}[ ar - 1].*)
 
-val fill : 'a t -> int -> int -> 'a option -> unit
+val fill : t('a) -> int -> int -> option('a) -> unit
 (** [Weak.fill ar ofs len el] sets to [el] all pointers of [ar] from
    [ofs] to [ofs + len - 1].
    @raise Invalid_argument
    if [ofs] and [len] do not designate a valid subarray of [ar].*)
 
-val blit : 'a t -> int -> 'a t -> int -> int -> unit
+val blit : t('a) -> int -> t('a) -> int -> int -> unit
 (** [Weak.blit ar1 off1 ar2 off2 len] copies [len] weak pointers
    from [ar1] (starting at [off1]) to [ar2] (starting at [off2]).
    It works correctly even if [ar1] and [ar2] are the same.
@@ -156,13 +156,13 @@ module type S = sig
     (** [find t x] returns an instance of [x] found in [t].
         @raise Not_found if there is no such element. *)
 
-  val find_opt: t -> data -> data option
+  val find_opt: t -> data -> option(data)
     (** [find_opt t x] returns an instance of [x] found in [t]
         or [None] if there is no such element.
         @since 4.05
     *)
 
-  val find_all : t -> data -> data list
+  val find_all : t -> data -> list(data)
     (** [find_all t x] returns a list of all the instances of [x]
         found in [t]. *)
 

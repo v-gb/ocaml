@@ -20,7 +20,7 @@
   an error.
 *)
 
-external argv : string array = "%sys_argv"
+external argv : array(string) = "%sys_argv"
 (** The command line arguments given to the process.
    The first element is the command name used to invoke the program.
    The following elements are the command-line arguments
@@ -68,7 +68,7 @@ external getenv : string -> string = "caml_sys_getenv"
    environment.
    @raise Not_found if the variable is unbound. *)
 
-val getenv_opt: string -> string option
+val getenv_opt: string -> option(string)
 (** Return the value associated to a variable in the process
     environment or [None] if the variable is unbound.
     @since 4.05
@@ -117,7 +117,7 @@ external rmdir : string -> unit = "caml_sys_rmdir"
 external getcwd : unit -> string = "caml_sys_getcwd"
 (** Return the current working directory of the process. *)
 
-external readdir : string -> string array = "caml_sys_read_directory"
+external readdir : string -> array(string) = "caml_sys_read_directory"
 (** Return the names of all files present in the given directory.
    Names denoting the current directory and the parent directory
    (["."] and [".."] in Unix) are not returned.  Each string in the
@@ -137,7 +137,7 @@ val io_buffer_size: int
     @since 5.4
 *)
 
-val interactive : bool ref
+val interactive : ref(bool)
 [@@alert unsynchronized_access
     "The interactive status is a mutable global state."
 ]
@@ -389,7 +389,7 @@ type ocaml_release_info = {
   major : int;
   minor : int;
   patchlevel : int;
-  extra : extra_info option
+  extra : option(extra_info)
 }
 (** @since 4.14 *)
 
@@ -456,9 +456,9 @@ module Immediate64 : sig
 
   module Make(Immediate : Immediate)(Non_immediate : Non_immediate) : sig
     type t [@@immediate64]
-    type 'a repr =
-      | Immediate : Immediate.t repr
-      | Non_immediate : Non_immediate.t repr
-    val repr : t repr
+    type repr('a) =
+      | Immediate : repr(Immediate.t)
+      | Non_immediate : repr(Non_immediate.t)
+    val repr : repr(t)
   end
 end

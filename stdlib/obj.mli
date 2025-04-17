@@ -119,9 +119,9 @@ module Ephemeron: sig
   val length: t -> int
   (** return the number of keys *)
 
-  val get_key: t -> int -> obj_t option
+  val get_key: t -> int -> option(obj_t)
 
-  val get_key_copy: t -> int -> obj_t option
+  val get_key_copy: t -> int -> option(obj_t)
 
   val set_key: t -> int -> obj_t -> unit
 
@@ -131,9 +131,9 @@ module Ephemeron: sig
 
   val blit_key : t -> int -> t -> int -> int -> unit
 
-  val get_data: t -> obj_t option
+  val get_data: t -> option(obj_t)
 
-  val get_data_copy: t -> obj_t option
+  val get_data_copy: t -> option(obj_t)
 
   val set_data: t -> obj_t -> unit
 

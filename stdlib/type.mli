@@ -19,7 +19,7 @@
 
 (** {1:witness Type equality witness} *)
 
-type (_, _) eq = Equal: ('a, 'a) eq (** *)
+type eq(_, _) = Equal: eq('a, 'a) (** *)
 (** The purpose of [eq] is to represent type equalities that may not otherwise
     be known by the type checker (e.g. because they may depend on dynamic data).
 
@@ -54,16 +54,16 @@ module Id : sig
 
   (** {1:ids Type identifiers} *)
 
-  type !'a t
+  type t(!'a)
   (** The type for identifiers for type ['a]. *)
 
-  val make : unit -> 'a t
+  val make : unit -> t('a)
   (** [make ()] is a new type identifier. *)
 
-  val uid : 'a t -> int
+  val uid : t('a) -> int
   (** [uid id] is a runtime unique identifier for [id]. *)
 
-  val provably_equal : 'a t -> 'b t -> ('a, 'b) eq option
+  val provably_equal : t('a) -> t('b) -> option(eq('a, 'b))
   (** [provably_equal i0 i1] is [Some Equal] if identifier [i0] is equal
       to [i1] and [None] otherwise. *)
 

@@ -69,7 +69,7 @@ let input_line ic =
 let input = Stdlib.input
 
 external unsafe_input_bigarray :
-  t -> _ Bigarray.Array1.t -> int -> int -> int
+  t -> Bigarray.Array1.t(_) -> int -> int -> int
   = "caml_ml_input_bigarray"
 
 let input_bigarray ic buf ofs len =

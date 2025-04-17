@@ -14,7 +14,7 @@
 (**************************************************************************)
 
 (* An alias for the type of lists. *)
-type 'a t = 'a list = [] | (::) of 'a * 'a list
+type t('a) = list('a) = [] | (::) of 'a * list('a)
 
 (* List operations *)
 

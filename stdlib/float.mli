@@ -188,7 +188,7 @@ external of_string : string -> float = "caml_float_of_string"
     @raise Failure if the given string is not a valid
     representation of a float. *)
 
-val of_string_opt: string -> float option
+val of_string_opt: string -> option(float)
 (** Same as [of_string], but returns [None] instead of raising. *)
 
 val to_string : float -> string
@@ -533,7 +533,7 @@ module Array : sig
       applied to the integers [0] to [n-1].
       @raise Invalid_argument if [n < 0] or [n > Sys.max_floatarray_length]. *)
 
-  val make_matrix : int -> int -> float -> t array
+  val make_matrix : int -> int -> float -> array(t)
   (** [make_matrix dimx dimy e] returns a two-dimensional array
       (an array of arrays) with first dimension [dimx] and
       second dimension [dimy], where all elements are initialized with [e].
@@ -543,7 +543,7 @@ module Array : sig
 
       @since 5.2 *)
 
-  val init_matrix : int -> int -> (int -> int -> float) -> t array
+  val init_matrix : int -> int -> (int -> int -> float) -> array(t)
   (** [init_matrix dimx dimy f] returns a two-dimensional array
       (an array of arrays)
       with first dimension [dimx] and second dimension [dimy],
@@ -560,7 +560,7 @@ module Array : sig
       @raise Invalid_argument if
       [length v1 + length v2 > Sys.max_floatarray_length]. *)
 
-  val concat : t list -> t
+  val concat : list(t) -> t
   (** Same as {!append}, but concatenates a list of floatarrays. *)
 
   val sub : t -> int -> int -> t
@@ -592,10 +592,10 @@ module Array : sig
       designate a valid subarray of [src], or if [dst_pos] and [len] do not
       designate a valid subarray of [dst]. *)
 
-  val to_list : t -> float list
+  val to_list : t -> list(float)
   (** [to_list a] returns the list of all the elements of [a]. *)
 
-  val of_list : float list -> t
+  val of_list : list(float) -> t
   (** [of_list l] returns a fresh floatarray containing the elements
       of [l].
       @raise Invalid_argument if the length of [l] is greater than
@@ -693,13 +693,13 @@ module Array : sig
 
   (** {1 Array searching} *)
 
-  val find_opt : (float -> bool) -> t -> float option
+  val find_opt : (float -> bool) -> t -> option(float)
   (* [find_opt f a] returns the first element of the array [a] that satisfies
      the predicate [f]. Returns [None] if there is no value that satisfies [f]
      in the array [a].
      @since 5.1 *)
 
-  val find_index : (float-> bool) -> t -> int option
+  val find_index : (float-> bool) -> t -> option(int)
   (** [find_index f a] returns [Some i], where [i] is the index of the first
       element of the array [a] that satisfies [f x], if there is such an
       element.
@@ -707,12 +707,12 @@ module Array : sig
       It returns [None] if there is no such element.
       @since 5.1 *)
 
-  val find_map : (float -> 'a option) -> t -> 'a option
+  val find_map : (float -> option('a)) -> t -> option('a)
   (* [find_map f a] applies [f] to the elements of [a] in order, and returns
      the first result of the form [Some v], or [None] if none exist.
      @since 5.1 *)
 
-  val find_mapi : (int -> float -> 'a option) -> t -> 'a option
+  val find_mapi : (int -> float -> option('a)) -> t -> option('a)
   (** Same as [find_map], but the predicate is applied to the index of
      the element as first argument (counting from 0), and the element
      itself as second argument.
@@ -773,25 +773,25 @@ module Array : sig
 
   (** {1 Float arrays and Sequences} *)
 
-  val to_seq : t -> float Seq.t
+  val to_seq : t -> Seq.t(float)
   (** Iterate on the floatarray, in increasing order. Modifications of the
       floatarray during iteration will be reflected in the sequence. *)
 
-  val to_seqi : t -> (int * float) Seq.t
+  val to_seqi : t -> Seq.t(int * float)
   (** Iterate on the floatarray, in increasing order, yielding indices along
       elements. Modifications of the floatarray during iteration will be
       reflected in the sequence. *)
 
-  val of_seq : float Seq.t -> t
+  val of_seq : Seq.t(float) -> t
   (** Create an array from the generator. *)
 
 
-  val map_to_array : (float -> 'a) -> t -> 'a array
+  val map_to_array : (float -> 'a) -> t -> array('a)
   (** [map_to_array f a] applies function [f] to all the elements of [a],
       and builds an array with the results returned by [f]:
       [[| f a.(0); f a.(1); ...; f a.(length a - 1) |]]. *)
 
-  val map_from_array : ('a -> float) -> 'a array -> t
+  val map_from_array : ('a -> float) -> array('a) -> t
   (** [map_from_array f a] applies function [f] to all the elements of [a],
       and builds a floatarray with the results returned by [f]. *)
 
@@ -916,7 +916,7 @@ module ArrayLabels : sig
       applied to the integers [0] to [n-1].
       @raise Invalid_argument if [n < 0] or [n > Sys.max_floatarray_length]. *)
 
-  val make_matrix : dimx:int -> dimy:int -> float -> t array
+  val make_matrix : dimx:int -> dimy:int -> float -> array(t)
   (** [make_matrix ~dimx ~dimy e] returns a two-dimensional array
       (an array of arrays) with first dimension [dimx] and
       second dimension [dimy], where all elements are initialized with [e].
@@ -926,7 +926,7 @@ module ArrayLabels : sig
 
       @since 5.2 *)
 
-  val init_matrix : dimx:int -> dimy:int -> f:(int -> int -> float) -> t array
+  val init_matrix : dimx:int -> dimy:int -> f:(int -> int -> float) -> array(t)
   (** [init_matrix ~dimx ~dimy ~f] returns a two-dimensional array
       (an array of arrays)
       with first dimension [dimx] and second dimension [dimy],
@@ -943,7 +943,7 @@ module ArrayLabels : sig
       @raise Invalid_argument if
       [length v1 + length v2 > Sys.max_floatarray_length]. *)
 
-  val concat : t list -> t
+  val concat : list(t) -> t
   (** Same as {!append}, but concatenates a list of floatarrays. *)
 
   val sub : t -> pos:int -> len:int -> t
@@ -975,10 +975,10 @@ module ArrayLabels : sig
       designate a valid subarray of [src], or if [dst_pos] and [len] do not
       designate a valid subarray of [dst]. *)
 
-  val to_list : t -> float list
+  val to_list : t -> list(float)
   (** [to_list a] returns the list of all the elements of [a]. *)
 
-  val of_list : float list -> t
+  val of_list : list(float) -> t
   (** [of_list l] returns a fresh floatarray containing the elements
       of [l].
       @raise Invalid_argument if the length of [l] is greater than
@@ -1076,13 +1076,13 @@ module ArrayLabels : sig
 
   (** {1 Array searching} *)
 
-  val find_opt : f:(float -> bool) -> t -> float option
+  val find_opt : f:(float -> bool) -> t -> option(float)
   (* [find_opt ~f a] returns the first element of the array [a] that satisfies
      the predicate [f]. Returns [None] if there is no value that satisfies [f]
      in the array [a].
      @since 5.1 *)
 
-  val find_index : f:(float-> bool) -> t -> int option
+  val find_index : f:(float-> bool) -> t -> option(int)
   (** [find_index ~f a] returns [Some i], where [i] is the index of the first
       element of the array [a] that satisfies [f x], if there is such an
       element.
@@ -1090,12 +1090,12 @@ module ArrayLabels : sig
       It returns [None] if there is no such element.
       @since 5.1 *)
 
-  val find_map : f:(float -> 'a option) -> t -> 'a option
+  val find_map : f:(float -> option('a)) -> t -> option('a)
   (* [find_map ~f a] applies [f] to the elements of [a] in order, and returns
      the first result of the form [Some v], or [None] if none exist.
      @since 5.1 *)
 
-  val find_mapi : f:(int -> float -> 'a option) -> t -> 'a option
+  val find_mapi : f:(int -> float -> option('a)) -> t -> option('a)
   (** Same as [find_map], but the predicate is applied to the index of
      the element as first argument (counting from 0), and the element
      itself as second argument.
@@ -1156,25 +1156,25 @@ module ArrayLabels : sig
 
   (** {1 Float arrays and Sequences} *)
 
-  val to_seq : t -> float Seq.t
+  val to_seq : t -> Seq.t(float)
   (** Iterate on the floatarray, in increasing order. Modifications of the
       floatarray during iteration will be reflected in the sequence. *)
 
-  val to_seqi : t -> (int * float) Seq.t
+  val to_seqi : t -> Seq.t(int * float)
   (** Iterate on the floatarray, in increasing order, yielding indices along
       elements. Modifications of the floatarray during iteration will be
       reflected in the sequence. *)
 
-  val of_seq : float Seq.t -> t
+  val of_seq : Seq.t(float) -> t
   (** Create an array from the generator. *)
 
 
-  val map_to_array : f:(float -> 'a) -> t -> 'a array
+  val map_to_array : f:(float -> 'a) -> t -> array('a)
   (** [map_to_array ~f a] applies function [f] to all the elements of [a],
       and builds an array with the results returned by [f]:
       [[| f a.(0); f a.(1); ...; f a.(length a - 1) |]]. *)
 
-  val map_from_array : f:('a -> float) -> 'a array -> t
+  val map_from_array : f:('a -> float) -> array('a) -> t
   (** [map_from_array ~f a] applies function [f] to all the elements of [a],
       and builds a floatarray with the results returned by [f]. *)
 

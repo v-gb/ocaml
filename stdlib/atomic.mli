@@ -24,10 +24,10 @@
 *)
 
 (** An atomic (mutable) reference to a value of type ['a]. *)
-type !'a t
+type t(!'a)
 
 (** Create an atomic reference. *)
-val make : 'a -> 'a t
+val make : 'a -> t('a)
 
 (** Create an atomic reference that is alone on a cache line. It occupies 4-16x
     the memory of one allocated with [make v].
@@ -40,33 +40,33 @@ val make : 'a -> 'a t
     which can create a bottleneck. Hence, as a general guideline, if an atomic
     reference is experiencing contention, assigning it its own cache line may
     enhance performance. *)
-val make_contended : 'a -> 'a t
+val make_contended : 'a -> t('a)
 
 (** Get the current value of the atomic reference. *)
-val get : 'a t -> 'a
+val get : t('a) -> 'a
 
 (** Set a new value for the atomic reference. *)
-val set : 'a t -> 'a -> unit
+val set : t('a) -> 'a -> unit
 
 (** Set a new value for the atomic reference, and return the current value. *)
-val exchange : 'a t -> 'a -> 'a
+val exchange : t('a) -> 'a -> 'a
 
 (** [compare_and_set r seen v] sets the new value of [r] to [v] only
     if its current value is physically equal to [seen] -- the
     comparison and the set occur atomically. Returns [true] if the
     comparison succeeded (so the set happened) and [false]
     otherwise. *)
-val compare_and_set : 'a t -> 'a -> 'a -> bool
+val compare_and_set : t('a) -> 'a -> 'a -> bool
 
 (** [fetch_and_add r n] atomically increments the value of [r] by [n],
     and returns the current value (before the increment). *)
-val fetch_and_add : int t -> int -> int
+val fetch_and_add : t(int) -> int -> int
 
 (** [incr r] atomically increments the value of [r] by [1]. *)
-val incr : int t -> unit
+val incr : t(int) -> unit
 
 (** [decr r] atomically decrements the value of [r] by [1]. *)
-val decr : int t -> unit
+val decr : t(int) -> unit
 
 (** {1:examples Examples}
 

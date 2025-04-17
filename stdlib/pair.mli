@@ -20,7 +20,7 @@
 
 (** {1:pairs Pairs} *)
 
-type ('a, 'b) t = 'a * 'b
+type t('a, 'b) = 'a * 'b
 (** The type for pairs. *)
 
 val make: 'a -> 'b -> 'a * 'b

@@ -1015,7 +1015,7 @@ val formatter_of_out_channel : out_channel -> formatter
 *)
 
 val synchronized_formatter_of_out_channel :
-  out_channel -> formatter Domain.DLS.key
+  out_channel -> Domain.DLS.key(formatter)
 [@@alert unstable][@@alert "-unstable"]
 (** [synchronized_formatter_of_out_channel oc] returns the key to the
     domain-local state that holds the domain-local formatter for writing to the
@@ -1098,7 +1098,7 @@ val make_formatter :
 *)
 
 val make_synchronized_formatter :
-  (string -> int -> int -> unit) -> (unit -> unit) -> formatter Domain.DLS.key
+  (string -> int -> int -> unit) -> (unit -> unit) -> Domain.DLS.key(formatter)
 [@@alert unstable][@@alert "-unstable"]
 (** [make_synchronized_formatter out flush] returns the key to the domain-local
     state that holds the domain-local formatter that outputs with function
@@ -1179,14 +1179,14 @@ val clear_symbolic_output_buffer : symbolic_output_buffer -> unit
 *)
 
 val get_symbolic_output_buffer :
-  symbolic_output_buffer -> symbolic_output_item list
+  symbolic_output_buffer -> list(symbolic_output_item)
 (** [get_symbolic_output_buffer sob] returns the contents of buffer [sob].
 
   @since 4.06
 *)
 
 val flush_symbolic_output_buffer :
-  symbolic_output_buffer -> symbolic_output_item list
+  symbolic_output_buffer -> list(symbolic_output_item)
 (** [flush_symbolic_output_buffer sob] returns the contents of buffer
   [sob] and resets buffer [sob].
   [flush_symbolic_output_buffer sob] is equivalent to
@@ -1225,7 +1225,7 @@ val pp_print_iter :
 
 val pp_print_list:
   ?pp_sep:(formatter -> unit -> unit) ->
-  (formatter -> 'a -> unit) -> (formatter -> 'a list -> unit)
+  (formatter -> 'a -> unit) -> (formatter -> list('a) -> unit)
 (** [pp_print_list ?pp_sep pp_v ppf l] prints items of list [l],
   using [pp_v] to print each item, and calling [pp_sep]
   between items ([pp_sep] defaults to {!pp_print_cut}).
@@ -1236,7 +1236,7 @@ val pp_print_list:
 
 val pp_print_array:
   ?pp_sep:(formatter -> unit -> unit) ->
-  (formatter -> 'a -> unit) -> (formatter -> 'a array -> unit)
+  (formatter -> 'a -> unit) -> (formatter -> array('a) -> unit)
 (** [pp_print_array ?pp_sep pp_v ppf a] prints items of array [a],
   using [pp_v] to print each item, and calling [pp_sep]
   between items ([pp_sep] defaults to {!pp_print_cut}).
@@ -1251,7 +1251,7 @@ val pp_print_array:
 
 val pp_print_seq:
   ?pp_sep:(formatter -> unit -> unit) ->
-  (formatter -> 'a -> unit) -> (formatter -> 'a Seq.t -> unit)
+  (formatter -> 'a -> unit) -> (formatter -> Seq.t('a) -> unit)
 (** [pp_print_seq ?pp_sep pp_v ppf s] prints items of sequence [s],
   using [pp_v] to print each item, and calling [pp_sep]
   between items ([pp_sep] defaults to {!pp_print_cut}.
@@ -1269,7 +1269,7 @@ val pp_print_text : formatter -> string -> unit
   @since 4.02
 *)
 
-val format_text: ('a,'b,'c,'d,'e,'f) format6 -> ('a,'b,'c,'d,'e,'f) format6
+val format_text: format6('a, 'b, 'c, 'd, 'e, 'f) -> format6('a, 'b, 'c, 'd, 'e, 'f)
 (** [format_text fmt] replaces spaces and newlines in the format string literal
     [fmt] with hint breaks or forced newlines:
   - Blank lines (lines made only of spaces ([U+0020])) are replaced by ["\@n"].
@@ -1285,7 +1285,7 @@ val format_text: ('a,'b,'c,'d,'e,'f) format6 -> ('a,'b,'c,'d,'e,'f) format6
 
 val pp_print_option :
   ?none:(formatter -> unit -> unit) ->
-  (formatter -> 'a -> unit) -> (formatter -> 'a option -> unit)
+  (formatter -> 'a -> unit) -> (formatter -> option('a) -> unit)
 (** [pp_print_option ?none pp_v ppf o] prints [o] on [ppf]
     using [pp_v] if [o] is [Some v] and [none] if it is [None]. [none]
     prints nothing by default.
@@ -1294,7 +1294,7 @@ val pp_print_option :
 
 val pp_print_result :
   ok:(formatter -> 'a -> unit) -> error:(formatter -> 'e -> unit) ->
-  formatter -> ('a, 'e) result -> unit
+  formatter -> result('a, 'e) -> unit
 (** [pp_print_result ~ok ~error ppf r] prints [r] on [ppf] using
     [ok] if [r] is [Ok _] and [error] if [r] is [Error _].
 
@@ -1302,7 +1302,7 @@ val pp_print_result :
 
 val pp_print_either :
   left:(formatter -> 'a -> unit) ->
-  right:(formatter -> 'b -> unit) -> formatter -> ('a, 'b) Either.t -> unit
+  right:(formatter -> 'b -> unit) -> formatter -> Either.t('a, 'b) -> unit
 (** [pp_print_either ~left ~right ppf e] prints [e] on [ppf] using
     [left] if [e] is [Either.Left _] and [right] if [e] is [Either.Right _].
 
@@ -1323,7 +1323,7 @@ val pp_print_either :
 
 *)
 
-val fprintf : formatter -> ('a, formatter, unit) format -> 'a
+val fprintf : formatter -> format('a, formatter, unit) -> 'a
 
 (** [fprintf ff fmt arg1 ... argN] formats the arguments [arg1] to [argN]
   according to the format string [fmt], and outputs the resulting string on
@@ -1396,7 +1396,7 @@ val fprintf : formatter -> ('a, formatter, unit) format -> 'a
 
 *)
 
-val printf : ('a, formatter, unit) format -> 'a
+val printf : format('a, formatter, unit) -> 'a
 (** Same as [fprintf] above, but output on [get_std_formatter ()].
 
     It is defined similarly to [fun fmt -> fprintf (get_std_formatter ()) fmt]
@@ -1406,7 +1406,7 @@ val printf : ('a, formatter, unit) format -> 'a
     the formatter is flushed, such as with {!print_flush}.
 *)
 
-val eprintf : ('a, formatter, unit) format -> 'a
+val eprintf : format('a, formatter, unit) -> 'a
 (** Same as [fprintf] above, but output on [get_err_formatter ()].
 
     It is defined similarly to [fun fmt -> fprintf (get_err_formatter ()) fmt]
@@ -1416,7 +1416,7 @@ val eprintf : ('a, formatter, unit) format -> 'a
     the formatter is flushed, such as with {!print_flush}.
 *)
 
-val sprintf : ('a, unit, string) format -> 'a
+val sprintf : format('a, unit, string) -> 'a
 (** Same as [printf] above, but instead of printing on a formatter,
   returns a string containing the result of formatting the arguments.
   Note that the pretty-printer queue is flushed at the end of {e each
@@ -1433,7 +1433,7 @@ val sprintf : ('a, unit, string) format -> 'a
   pretty-printing returns the desired string.
 *)
 
-val asprintf : ('a, formatter, unit, string) format4 -> 'a
+val asprintf : format4('a, formatter, unit, string) -> 'a
 (** Same as [printf] above, but instead of printing on a formatter,
   returns a string containing the result of formatting the arguments.
   The type of [asprintf] is general enough to interact nicely with [%a]
@@ -1443,7 +1443,7 @@ val asprintf : ('a, formatter, unit, string) format4 -> 'a
 *)
 
 val dprintf :
-  ('a, formatter, unit, formatter -> unit) format4 -> 'a
+  format4('a, formatter, unit, formatter -> unit) -> 'a
 (** Same as {!fprintf}, except the formatter is the last argument.
   [dprintf "..." a b c] is a function of type
   [formatter -> unit] which can be given to a format specifier [%t].
@@ -1465,7 +1465,7 @@ val dprintf :
 *)
 
 
-val ifprintf : formatter -> ('a, formatter, unit) format -> 'a
+val ifprintf : formatter -> format('a, formatter, unit) -> 'a
 (** Same as [fprintf] above, but does not print anything.
   Useful to ignore some material when conditionally printing.
 
@@ -1476,13 +1476,13 @@ val ifprintf : formatter -> ('a, formatter, unit) format -> 'a
 
 val kfprintf :
   (formatter -> 'a) -> formatter ->
-  ('b, formatter, unit, 'a) format4 -> 'b
+  format4('b, formatter, unit, 'a) -> 'b
 (** Same as [fprintf] above, but instead of returning immediately,
   passes the formatter to its first argument at the end of printing. *)
 
 val kdprintf :
   ((formatter -> unit) -> 'a) ->
-  ('b, formatter, unit, 'a) format4 -> 'b
+  format4('b, formatter, unit, 'a) -> 'b
 (** Same as {!dprintf} above, but instead of returning immediately,
   passes the suspended printer to its first argument at the end of printing.
 
@@ -1491,18 +1491,18 @@ val kdprintf :
 
 val ikfprintf :
   (formatter -> 'a) -> formatter ->
-  ('b, formatter, unit, 'a) format4 -> 'b
+  format4('b, formatter, unit, 'a) -> 'b
 (** Same as [kfprintf] above, but does not print anything.
   Useful to ignore some material when conditionally printing.
 
   @since 3.12
 *)
 
-val ksprintf : (string -> 'a) -> ('b, unit, string, 'a) format4 -> 'b
+val ksprintf : (string -> 'a) -> format4('b, unit, string, 'a) -> 'b
 (** Same as [sprintf] above, but instead of returning the string,
   passes it to the first argument. *)
 
-val kasprintf : (string -> 'a) -> ('b, formatter, unit, 'a) format4 -> 'b
+val kasprintf : (string -> 'a) -> format4('b, formatter, unit, 'a) -> 'b
 (** Same as [asprintf] above, but instead of returning the string,
   passes it to the first argument.
 

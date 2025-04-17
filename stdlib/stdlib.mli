@@ -696,7 +696,7 @@ val string_of_bool : bool -> string
    may be shared, the user should not modify them directly.
 *)
 
-val bool_of_string_opt: string -> bool option
+val bool_of_string_opt: string -> option(bool)
 (** Convert the given string to a boolean.
 
    Return [None] if the string is not ["true"] or ["false"].
@@ -710,7 +710,7 @@ val bool_of_string : string -> bool
 val string_of_int : int -> string
 (** Return the string representation of an integer, in decimal. *)
 
-val int_of_string_opt: string -> int option
+val int_of_string_opt: string -> option(int)
 (** Convert the given string to an integer.
    The string is read in decimal (by default, or if the string
    begins with [0u]), in hexadecimal (if it begins with [0x] or
@@ -741,7 +741,7 @@ val string_of_float : float -> string
     This conversion can involve a loss of precision. For greater control over
     the manner in which the number is printed, see {!Printf}. *)
 
-val float_of_string_opt: string -> float option
+val float_of_string_opt: string -> option(float)
 (** Convert the given string to a float.  The string is read in decimal
    (by default) or in hexadecimal (marked by [0x] or [0X]).
 
@@ -783,7 +783,7 @@ external snd : 'a * 'b -> 'b = "%field1"
    More list operations are provided in module {!List}.
 *)
 
-val ( @ ) : 'a list -> 'a list -> 'a list
+val ( @ ) : list('a) -> list('a) -> list('a)
 (** [l0 @ l1] appends [l1] to [l0]. Same function as {!List.append}.
   Right-associative operator, see {!Ocaml_operators} for more information.
   @since 5.1 this function is tail-recursive.
@@ -883,7 +883,7 @@ val read_line : unit -> string
    line.
 *)
 
-val read_int_opt: unit -> int option
+val read_int_opt: unit -> option(int)
 (** Flush standard output, then read one line from standard input
    and convert it to an integer.
 
@@ -895,7 +895,7 @@ val read_int : unit -> int
 (** Same as {!Stdlib.read_int_opt}, but raise [Failure "int_of_string"]
    instead of returning [None]. *)
 
-val read_float_opt: unit -> float option
+val read_float_opt: unit -> option(float)
 (** Flush standard output, then read one line from standard input
    and convert it to a floating-point number.
 
@@ -936,7 +936,7 @@ val open_out_bin : string -> out_channel
    systems that do not distinguish between text mode and binary
    mode, this function behaves like {!Stdlib.open_out}. *)
 
-val open_out_gen : open_flag list -> int -> string -> out_channel
+val open_out_gen : list(open_flag) -> int -> string -> out_channel
 (** [open_out_gen mode perm filename] opens the named file for writing,
    as described above. The extra argument [mode]
    specifies the opening mode. The extra argument [perm] specifies
@@ -1051,7 +1051,7 @@ val open_in_bin : string -> in_channel
    systems that do not distinguish between text mode and binary
    mode, this function behaves like {!Stdlib.open_in}. *)
 
-val open_in_gen : open_flag list -> int -> string -> in_channel
+val open_in_gen : list(open_flag) -> int -> string -> in_channel
 (** [open_in_gen mode perm filename] opens the named file for reading,
    as described above. The extra arguments
    [mode] and [perm] specify the opening mode and file permissions.
@@ -1181,37 +1181,37 @@ module LargeFile :
 
 (** {1 References} *)
 
-type 'a ref = { mutable contents : 'a }
+type ref('a) = { mutable contents : 'a }
 (** The type of references (mutable indirection cells) containing
    a value of type ['a]. *)
 
-external ref : 'a -> 'a ref = "%makemutable"
+external ref : 'a -> ref('a) = "%makemutable"
 (** Return a fresh reference containing the given value. *)
 
-external ( ! ) : 'a ref -> 'a = "%field0"
+external ( ! ) : ref('a) -> 'a = "%field0"
 (** [!r] returns the current contents of reference [r].
    Equivalent to [fun r -> r.contents].
    Unary operator, see {!Ocaml_operators} for more information.
 *)
 
-external ( := ) : 'a ref -> 'a -> unit = "%setfield0"
+external ( := ) : ref('a) -> 'a -> unit = "%setfield0"
 (** [r := a] stores the value of [a] in reference [r].
    Equivalent to [fun r v -> r.contents <- v].
    Right-associative operator, see {!Ocaml_operators} for more information.
 *)
 
-external incr : int ref -> unit = "%incr"
+external incr : ref(int) -> unit = "%incr"
 (** Increment the integer contained in the given reference.
    Equivalent to [fun r -> r := succ !r]. *)
 
-external decr : int ref -> unit = "%decr"
+external decr : ref(int) -> unit = "%decr"
 (** Decrement the integer contained in the given reference.
    Equivalent to [fun r -> r := pred !r]. *)
 
 (** {1 Result type} *)
 
 (** @since 4.03 *)
-type ('a,'b) result = Ok of 'a | Error of 'b
+type result('a,'b) = Ok of 'a | Error of 'b
 
 (** {1 Operations on format strings} *)
 
@@ -1283,19 +1283,19 @@ type ('a,'b) result = Ok of 'a | Error of 'b
       receiver function.
 *)
 
-type ('a, 'b, 'c, 'd, 'e, 'f) format6 =
-  ('a, 'b, 'c, 'd, 'e, 'f) CamlinternalFormatBasics.format6
+type format6('a, 'b, 'c, 'd, 'e, 'f) =
+  CamlinternalFormatBasics.format6('a, 'b, 'c, 'd, 'e, 'f)
 
-type ('a, 'b, 'c, 'd) format4 = ('a, 'b, 'c, 'c, 'c, 'd) format6
+type format4('a, 'b, 'c, 'd) = format6('a, 'b, 'c, 'c, 'c, 'd)
 
-type ('a, 'b, 'c) format = ('a, 'b, 'c, 'c) format4
+type format('a, 'b, 'c) = format4('a, 'b, 'c, 'c)
 
-val string_of_format : ('a, 'b, 'c, 'd, 'e, 'f) format6 -> string
+val string_of_format : format6('a, 'b, 'c, 'd, 'e, 'f) -> string
 (** Converts a format string into a string. *)
 
 external format_of_string :
-  ('a, 'b, 'c, 'd, 'e, 'f) format6 ->
-  ('a, 'b, 'c, 'd, 'e, 'f) format6 = "%identity"
+  format6('a, 'b, 'c, 'd, 'e, 'f) ->
+  format6('a, 'b, 'c, 'd, 'e, 'f) = "%identity"
 (** [format_of_string s] returns a format string read from the string
     literal [s].
     Note: [format_of_string] can not convert a string argument that is not a
@@ -1304,9 +1304,9 @@ external format_of_string :
 *)
 
 val ( ^^ ) :
-  ('a, 'b, 'c, 'd, 'e, 'f) format6 ->
-  ('f, 'b, 'c, 'e, 'g, 'h) format6 ->
-  ('a, 'b, 'c, 'd, 'g, 'h) format6
+  format6('a, 'b, 'c, 'd, 'e, 'f) ->
+  format6('f, 'b, 'c, 'e, 'g, 'h) ->
+  format6('a, 'b, 'c, 'd, 'g, 'h)
 (** [f1 ^^ f2] catenates format strings [f1] and [f2]. The result is a
   format string that behaves as the concatenation of format strings [f1] and
   [f2]: in case of formatted output, it accepts arguments from [f1], then
@@ -1349,7 +1349,7 @@ val unsafe_really_input : in_channel -> bytes -> int -> int -> unit
 
 val do_at_exit : unit -> unit
 
-val do_domain_local_at_exit : (unit -> unit) ref
+val do_domain_local_at_exit : ref(unit -> unit)
 
 (**/**)
 

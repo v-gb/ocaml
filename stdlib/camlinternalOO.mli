@@ -30,29 +30,29 @@ val public_method_label : string -> tag
 val new_method : table -> label
 val new_variable : table -> string -> int
 val new_methods_variables :
-    table -> string array -> string array -> label array
+    table -> array(string) -> array(string) -> array(label)
 val get_variable : table -> string -> int
-val get_variables : table -> string array -> int array
+val get_variables : table -> array(string) -> array(int)
 val get_method_label : table -> string -> label
-val get_method_labels : table -> string array -> label array
+val get_method_labels : table -> array(string) -> array(label)
 val get_method : table -> label -> meth
 val set_method : table -> label -> meth -> unit
-val set_methods : table -> label array -> unit
-val narrow : table -> string array -> string array -> string array -> unit
+val set_methods : table -> array(label) -> unit
+val narrow : table -> array(string) -> array(string) -> array(string) -> unit
 val widen : table -> unit
 val add_initializer : table -> (obj -> unit) -> unit
 val dummy_table : table
-val create_table : string array -> table
+val create_table : array(string) -> table
 val init_class : table -> unit
 val inherits :
-    table -> string array -> string array -> string array ->
-    (t * (table -> obj -> Obj.t) * obj) -> bool -> Obj.t array
+    table -> array(string) -> array(string) -> array(string) ->
+    (t * (table -> obj -> Obj.t) * obj) -> bool -> array(Obj.t)
 val make_class :
-    string array -> (table -> Obj.t -> t) ->
+    array(string) -> (table -> Obj.t -> t) ->
     (t * (table -> Obj.t -> t) * Obj.t)
 type init_table
 val make_class_store :
-    string array -> (table -> t) -> init_table -> unit
+    array(string) -> (table -> t) -> init_table -> unit
 val dummy_class :
     string * int * int ->
     (t * (table -> Obj.t -> t) * Obj.t)
@@ -74,7 +74,7 @@ external get_public_method : obj -> tag -> closure
 (** {1 Table cache} *)
 
 type tables
-val lookup_tables : tables -> closure array -> tables
+val lookup_tables : tables -> array(closure) -> tables
 
 (** {1 Builtins to reduce code size} *)
 

@@ -12,14 +12,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type !'a t
+type t(!'a)
 
-external make : 'a -> 'a t = "%makemutable"
-external make_contended : 'a -> 'a t = "caml_atomic_make_contended"
-external get : 'a t -> 'a = "%atomic_load"
-external exchange : 'a t -> 'a -> 'a = "%atomic_exchange"
-external compare_and_set : 'a t -> 'a -> 'a -> bool = "%atomic_cas"
-external fetch_and_add : int t -> int -> int = "%atomic_fetch_add"
+external make : 'a -> t('a) = "%makemutable"
+external make_contended : 'a -> t('a) = "caml_atomic_make_contended"
+external get : t('a) -> 'a = "%atomic_load"
+external exchange : t('a) -> 'a -> 'a = "%atomic_exchange"
+external compare_and_set : t('a) -> 'a -> 'a -> bool = "%atomic_cas"
+external fetch_and_add : t(int) -> int -> int = "%atomic_fetch_add"
 external ignore : 'a -> unit = "%ignore"
 
 let set r x = ignore (exchange r x)

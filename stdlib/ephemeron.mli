@@ -85,28 +85,28 @@ module type S = sig
   *)
 
   type key
-  type !'a t
-  val create : int -> 'a t
-  val clear : 'a t -> unit
-  val reset : 'a t -> unit
-  val copy : 'a t -> 'a t
-  val add : 'a t -> key -> 'a -> unit
-  val remove : 'a t -> key -> unit
-  val find : 'a t -> key -> 'a
-  val find_opt : 'a t -> key -> 'a option
-  val find_all : 'a t -> key -> 'a list
-  val replace : 'a t -> key -> 'a -> unit
-  val mem : 'a t -> key -> bool
-  val length : 'a t -> int
-  val stats : 'a t -> Hashtbl.statistics
-  val add_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val of_seq : (key * 'a) Seq.t -> 'a t
+  type t(!'a)
+  val create : int -> t('a)
+  val clear : t('a) -> unit
+  val reset : t('a) -> unit
+  val copy : t('a) -> t('a)
+  val add : t('a) -> key -> 'a -> unit
+  val remove : t('a) -> key -> unit
+  val find : t('a) -> key -> 'a
+  val find_opt : t('a) -> key -> option('a)
+  val find_all : t('a) -> key -> list('a)
+  val replace : t('a) -> key -> 'a -> unit
+  val mem : t('a) -> key -> bool
+  val length : t('a) -> int
+  val stats : t('a) -> Hashtbl.statistics
+  val add_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val of_seq : Seq.t(key * 'a) -> t('a)
 
-  val clean: 'a t -> unit
+  val clean: t('a) -> unit
   (** remove all dead bindings. Done automatically during automatic resizing. *)
 
-  val stats_alive: 'a t -> Hashtbl.statistics
+  val stats_alive: t('a) -> Hashtbl.statistics
   (** same as {!Hashtbl.SeededS.stats} but only count the alive bindings *)
 end
 (** The output signature of the functors {!K1.Make} and {!K2.Make}.
@@ -118,40 +118,40 @@ end
 module type SeededS = sig
 
   type key
-  type !'a t
-  val create : ?random (*thwart tools/sync_stdlib_docs*) : bool -> int -> 'a t
-  val clear : 'a t -> unit
-  val reset : 'a t -> unit
-  val copy : 'a t -> 'a t
-  val add : 'a t -> key -> 'a -> unit
-  val remove : 'a t -> key -> unit
-  val find : 'a t -> key -> 'a
-  val find_opt : 'a t -> key -> 'a option
-  val find_all : 'a t -> key -> 'a list
-  val replace : 'a t -> key -> 'a -> unit
-  val mem : 'a t -> key -> bool
-  val length : 'a t -> int
-  val stats : 'a t -> Hashtbl.statistics
-  val add_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val of_seq : (key * 'a) Seq.t -> 'a t
+  type t(!'a)
+  val create : ?random (*thwart tools/sync_stdlib_docs*) : bool -> int -> t('a)
+  val clear : t('a) -> unit
+  val reset : t('a) -> unit
+  val copy : t('a) -> t('a)
+  val add : t('a) -> key -> 'a -> unit
+  val remove : t('a) -> key -> unit
+  val find : t('a) -> key -> 'a
+  val find_opt : t('a) -> key -> option('a)
+  val find_all : t('a) -> key -> list('a)
+  val replace : t('a) -> key -> 'a -> unit
+  val mem : t('a) -> key -> bool
+  val length : t('a) -> int
+  val stats : t('a) -> Hashtbl.statistics
+  val add_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val of_seq : Seq.t(key * 'a) -> t('a)
 
-  val clean: 'a t -> unit
+  val clean: t('a) -> unit
   (** remove all dead bindings. Done automatically during automatic resizing. *)
 
-  val stats_alive: 'a t -> Hashtbl.statistics
+  val stats_alive: t('a) -> Hashtbl.statistics
   (** same as {!Hashtbl.SeededS.stats} but only count the alive bindings *)
 end
 (** The output signature of the functors {!K1.MakeSeeded} and {!K2.MakeSeeded}.
 *)
 
 module K1 : sig
-  type ('k,'d) t (** an ephemeron with one key *)
+  type t('k,'d) (** an ephemeron with one key *)
 
-  val make : 'k -> 'd -> ('k,'d) t
+  val make : 'k -> 'd -> t('k, 'd)
   (** [Ephemeron.K1.make k d] creates an ephemeron with key [k] and data [d]. *)
 
-  val query : ('k,'d) t -> 'k -> 'd option
+  val query : t('k, 'd) -> 'k -> option('d)
   (** [Ephemeron.K1.query eph key] returns [Some x] (where [x] is the
       ephemeron's data) if [key] is physically equal to [eph]'s key, and
       [None] if [eph] is empty or [key] is not equal to [eph]'s key. *)
@@ -165,28 +165,28 @@ module K1 : sig
 
   module Bucket : sig
 
-    type ('k, 'd) t
+    type t('k, 'd)
     (** A bucket is a mutable "list" of ephemerons. *)
 
-    val make : unit -> ('k, 'd) t
+    val make : unit -> t('k, 'd)
     (** Create a new bucket. *)
 
-    val add : ('k, 'd) t -> 'k -> 'd -> unit
+    val add : t('k, 'd) -> 'k -> 'd -> unit
     (** Add an ephemeron to the bucket. *)
 
-    val remove : ('k, 'd) t -> 'k -> unit
+    val remove : t('k, 'd) -> 'k -> unit
     (** [remove b k] removes from [b] the most-recently added
         ephemeron with key [k], or does nothing if there is no such
         ephemeron. *)
 
-    val find : ('k, 'd) t -> 'k -> 'd option
+    val find : t('k, 'd) -> 'k -> option('d)
     (** Returns the data of the most-recently added ephemeron with the
         given key, or [None] if there is no such ephemeron. *)
 
-    val length : ('k, 'd) t -> int
+    val length : t('k, 'd) -> int
     (** Returns an upper bound on the length of the bucket. *)
 
-    val clear : ('k, 'd) t -> unit
+    val clear : t('k, 'd) -> unit
     (** Remove all ephemerons from the bucket. *)
 
   end
@@ -195,12 +195,12 @@ end
 (** Ephemerons with one key. *)
 
 module K2 : sig
-  type ('k1,'k2,'d) t (** an ephemeron with two keys *)
+  type t('k1,'k2,'d) (** an ephemeron with two keys *)
 
-  val make : 'k1 -> 'k2 -> 'd -> ('k1,'k2,'d) t
+  val make : 'k1 -> 'k2 -> 'd -> t('k1, 'k2, 'd)
   (** Same as {!Ephemeron.K1.make} *)
 
-  val query : ('k1,'k2,'d) t -> 'k1 -> 'k2 -> 'd option
+  val query : t('k1, 'k2, 'd) -> 'k1 -> 'k2 -> option('d)
   (** Same as {!Ephemeron.K1.query} *)
 
   module Make
@@ -218,28 +218,28 @@ module K2 : sig
 
   module Bucket : sig
 
-    type ('k1, 'k2, 'd) t
+    type t('k1, 'k2, 'd)
     (** A bucket is a mutable "list" of ephemerons. *)
 
-    val make : unit -> ('k1, 'k2, 'd) t
+    val make : unit -> t('k1, 'k2, 'd)
     (** Create a new bucket. *)
 
-    val add : ('k1, 'k2, 'd) t -> 'k1 -> 'k2 -> 'd -> unit
+    val add : t('k1, 'k2, 'd) -> 'k1 -> 'k2 -> 'd -> unit
     (** Add an ephemeron to the bucket. *)
 
-    val remove : ('k1, 'k2, 'd) t -> 'k1 -> 'k2 -> unit
+    val remove : t('k1, 'k2, 'd) -> 'k1 -> 'k2 -> unit
     (** [remove b k1 k2] removes from [b] the most-recently added
         ephemeron with keys [k1] and [k2], or does nothing if there
         is no such ephemeron. *)
 
-    val find : ('k1, 'k2, 'd) t -> 'k1 -> 'k2 -> 'd option
+    val find : t('k1, 'k2, 'd) -> 'k1 -> 'k2 -> option('d)
     (** Returns the data of the most-recently added ephemeron with the
         given keys, or [None] if there is no such ephemeron. *)
 
-    val length : ('k1, 'k2, 'd) t -> int
+    val length : t('k1, 'k2, 'd) -> int
     (** Returns an upper bound on the length of the bucket. *)
 
-    val clear : ('k1, 'k2, 'd) t -> unit
+    val clear : t('k1, 'k2, 'd) -> unit
     (** Remove all ephemerons from the bucket. *)
 
   end
@@ -248,50 +248,50 @@ end
 (** Ephemerons with two keys. *)
 
 module Kn : sig
-  type ('k,'d) t (** an ephemeron with an arbitrary number of keys
+  type t('k,'d) (** an ephemeron with an arbitrary number of keys
                       of the same type *)
 
-  val make : 'k array -> 'd -> ('k,'d) t
+  val make : array('k) -> 'd -> t('k, 'd)
   (** Same as {!Ephemeron.K1.make} *)
 
-  val query : ('k,'d) t -> 'k array -> 'd option
+  val query : t('k, 'd) -> array('k) -> option('d)
   (** Same as {!Ephemeron.K1.query} *)
 
   module Make
       (H:Hashtbl.HashedType) :
-    S with type key = H.t array
+    S with type key = array(H.t)
   (** Functor building an implementation of a weak hash table *)
 
   module MakeSeeded
       (H:Hashtbl.SeededHashedType) :
-    SeededS with type key = H.t array
+    SeededS with type key = array(H.t)
   (** Functor building an implementation of a weak hash table.
       The seed is similar to the one of {!Hashtbl.MakeSeeded}. *)
 
   module Bucket : sig
 
-    type ('k, 'd) t
+    type t('k, 'd)
     (** A bucket is a mutable "list" of ephemerons. *)
 
-    val make : unit -> ('k, 'd) t
+    val make : unit -> t('k, 'd)
     (** Create a new bucket. *)
 
-    val add : ('k, 'd) t -> 'k array -> 'd -> unit
+    val add : t('k, 'd) -> array('k) -> 'd -> unit
     (** Add an ephemeron to the bucket. *)
 
-    val remove : ('k, 'd) t -> 'k array -> unit
+    val remove : t('k, 'd) -> array('k) -> unit
     (** [remove b k] removes from [b] the most-recently added
         ephemeron with keys [k], or does nothing if there is no such
         ephemeron. *)
 
-    val find : ('k, 'd) t -> 'k array -> 'd option
+    val find : t('k, 'd) -> array('k) -> option('d)
     (** Returns the data of the most-recently added ephemeron with the
         given keys, or [None] if there is no such ephemeron. *)
 
-    val length : ('k, 'd) t -> int
+    val length : t('k, 'd) -> int
     (** Returns an upper bound on the length of the bucket. *)
 
-    val clear : ('k, 'd) t -> unit
+    val clear : t('k, 'd) -> unit
     (** Remove all ephemerons from the bucket. *)
 
   end

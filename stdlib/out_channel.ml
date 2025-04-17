@@ -47,7 +47,7 @@ let with_open_gen flags perm s f =
   with_open (Stdlib.open_out_gen flags perm) s f
 
 external unsafe_output_bigarray :
-  t -> _ Bigarray.Array1.t -> int -> int -> unit
+  t -> Bigarray.Array1.t(_) -> int -> int -> unit
   = "caml_ml_output_bigarray"
 
 let seek = Stdlib.LargeFile.seek_out

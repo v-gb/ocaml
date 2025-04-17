@@ -23,18 +23,18 @@ module Raw = struct
   (* The layouts of [state] and [term_sync] are hard-coded in
      [runtime/domain.c] *)
 
-  type 'a state =
+  type state('a) =
     | Running
-    | Finished of ('a, exn) result [@warning "-unused-constructor"]
+    | Finished of result('a, exn) [@warning "-unused-constructor"]
 
-  type 'a term_sync = {
+  type term_sync('a) = {
     (* protected by [mut] *)
-    mutable state : 'a state [@warning "-unused-field"] ;
+    mutable state : state('a) [@warning "-unused-field"] ;
     mut : Mutex.t ;
     cond : Condition.t ;
   }
 
-  external spawn : (unit -> 'a) -> 'a term_sync -> t
+  external spawn : (unit -> 'a) -> term_sync('a) -> t
     = "caml_domain_spawn"
   external self : unit -> t
     = "caml_ml_domain_id" [@@noalloc]
@@ -48,9 +48,9 @@ let cpu_relax () = Raw.cpu_relax ()
 
 type id = Raw.t
 
-type 'a t = {
+type t('a) = {
   domain : Raw.t;
-  term_sync : 'a Raw.term_sync;
+  term_sync : Raw.term_sync('a);
 }
 
 module DLS = struct
@@ -75,7 +75,7 @@ module DLS = struct
     let unsafe_get obj = Obj.obj obj
   end
 
-  type dls_state = Obj_opt.t array
+  type dls_state = array(Obj_opt.t)
 
   external get_dls_state : unit -> dls_state = "%dls_get"
 
@@ -91,14 +91,14 @@ module DLS = struct
 
   let _ = create_dls ()
 
-  type 'a key = int * (unit -> 'a)
+  type key('a) = int * (unit -> 'a)
 
   let key_counter = Atomic.make 0
 
   type key_initializer =
-    KI: 'a key * ('a -> 'a) -> key_initializer
+    KI: key('a) * ('a -> 'a) -> key_initializer
 
-  let parent_keys = Atomic.make ([] : key_initializer list)
+  let parent_keys = Atomic.make ([] : list(key_initializer))
 
   let rec add_parent_key ki =
     let l = Atomic.get parent_keys in
@@ -155,7 +155,7 @@ module DLS = struct
       true
     ) else false
 
-  let get (type a) ((idx, init) : a key) : a =
+  let get (type a) ((idx, init) : key(a)) : a =
     let st = maybe_grow idx in
     let obj = st.(idx) in
     if Obj_opt.is_some obj
@@ -185,14 +185,14 @@ module DLS = struct
       end
     end
 
-  type key_value = KV : 'a key * 'a -> key_value
+  type key_value = KV : key('a) * 'a -> key_value
 
-  let get_initial_keys () : key_value list =
+  let get_initial_keys () : list(key_value) =
     List.map
       (fun (KI (k, split)) -> KV (k, (split (get k))))
       (Atomic.get parent_keys)
 
-  let set_initial_keys (l: key_value list) =
+  let set_initial_keys (l: list(key_value)) =
     List.iter (fun (KV (k, v)) -> set k v) l
 end
 

@@ -14,25 +14,25 @@
 (**************************************************************************)
 
 (* An alias for the type of arrays. *)
-type 'a t = 'a array
+type t('a) = array('a)
 
 (* Array operations *)
 
-external length : 'a array -> int = "%array_length"
-external get: 'a array -> int -> 'a = "%array_safe_get"
-external set: 'a array -> int -> 'a -> unit = "%array_safe_set"
-external unsafe_get: 'a array -> int -> 'a = "%array_unsafe_get"
-external unsafe_set: 'a array -> int -> 'a -> unit = "%array_unsafe_set"
-external make: int -> 'a -> 'a array = "caml_array_make"
-external create: int -> 'a -> 'a array = "caml_array_make"
-external unsafe_sub : 'a array -> int -> int -> 'a array = "caml_array_sub"
-external append_prim : 'a array -> 'a array -> 'a array = "caml_array_append"
-external concat : 'a array list -> 'a array = "caml_array_concat"
+external length : array('a) -> int = "%array_length"
+external get: array('a) -> int -> 'a = "%array_safe_get"
+external set: array('a) -> int -> 'a -> unit = "%array_safe_set"
+external unsafe_get: array('a) -> int -> 'a = "%array_unsafe_get"
+external unsafe_set: array('a) -> int -> 'a -> unit = "%array_unsafe_set"
+external make: int -> 'a -> array('a) = "caml_array_make"
+external create: int -> 'a -> array('a) = "caml_array_make"
+external unsafe_sub : array('a) -> int -> int -> array('a) = "caml_array_sub"
+external append_prim : array('a) -> array('a) -> array('a) = "caml_array_append"
+external concat : list(array('a)) -> array('a) = "caml_array_concat"
 external unsafe_blit :
-  'a array -> int -> 'a array -> int -> int -> unit = "caml_array_blit"
+  array('a) -> int -> array('a) -> int -> int -> unit = "caml_array_blit"
 external unsafe_fill :
-  'a array -> int -> int -> 'a -> unit = "caml_array_fill"
-external create_float: int -> float array = "caml_array_create_float"
+  array('a) -> int -> int -> 'a -> unit = "caml_array_fill"
+external create_float: int -> array(float) = "caml_array_create_float"
 
 module Floatarray = struct
   external create : int -> floatarray = "caml_floatarray_create"

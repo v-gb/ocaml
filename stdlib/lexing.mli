@@ -56,7 +56,7 @@ type lexbuf =
     mutable lex_last_pos : int;
     mutable lex_last_action : int;
     mutable lex_eof_reached : bool;
-    mutable lex_mem : int array;
+    mutable lex_mem : array(int);
     mutable lex_start_p : position;
     mutable lex_curr_p : position;
   }
@@ -191,9 +191,9 @@ val flush_input : lexbuf -> unit
    They are not intended to be used directly by user programs. *)
 
 val sub_lexeme : lexbuf -> int -> int -> string
-val sub_lexeme_opt : lexbuf -> int -> int -> string option
+val sub_lexeme_opt : lexbuf -> int -> int -> option(string)
 val sub_lexeme_char : lexbuf -> int -> char
-val sub_lexeme_char_opt : lexbuf -> int -> char option
+val sub_lexeme_char_opt : lexbuf -> int -> option(char)
 
 type lex_tables =
   { lex_base : string;

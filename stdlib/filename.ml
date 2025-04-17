@@ -78,12 +78,12 @@ module type SYSDEPS = sig
   val is_relative : string -> bool
   val is_implicit : string -> bool
   val check_suffix : string -> string -> bool
-  val chop_suffix_opt : suffix:string -> string -> string option
+  val chop_suffix_opt : suffix:string -> string -> option(string)
   val temp_dir_name : string
   val quote : string -> string
   val quote_command :
     string -> ?stdin: string -> ?stdout: string -> ?stderr: string
-           -> string list -> string
+           -> list(string) -> string
   val basename : string -> string
   val dirname : string -> string
 end
@@ -330,7 +330,7 @@ let remove_extension name =
   let l = extension_len name in
   if l = 0 then name else String.sub name 0 (String.length name - l)
 
-external open_desc: string -> open_flag list -> int -> int = "caml_sys_open"
+external open_desc: string -> list(open_flag) -> int -> int = "caml_sys_open"
 external close_desc: int -> unit = "caml_sys_close"
 
 let prng_key =

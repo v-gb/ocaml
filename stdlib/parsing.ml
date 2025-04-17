@@ -20,10 +20,10 @@ open Lexing
 (* Internal interface to the parsing engine *)
 
 type parser_env =
-  { mutable s_stack : int array;        (* States *)
-    mutable v_stack : Obj.t array;      (* Semantic attributes *)
-    mutable symb_start_stack : position array; (* Start positions *)
-    mutable symb_end_stack : position array;   (* End positions *)
+  { mutable s_stack : array(int);        (* States *)
+    mutable v_stack : array(Obj.t);      (* Semantic attributes *)
+    mutable symb_start_stack : array(position); (* Start positions *)
+    mutable symb_end_stack : array(position);   (* End positions *)
     mutable stacksize : int;            (* Size of the stacks *)
     mutable stackbase : int;            (* Base sp for current parse *)
     mutable curr_char : int;            (* Last token read *)
@@ -39,9 +39,9 @@ type parser_env =
 [@@warning "-unused-field"]
 
 type parse_tables =
-  { actions : (parser_env -> Obj.t) array;
-    transl_const : int array;
-    transl_block : int array;
+  { actions : array(parser_env -> Obj.t);
+    transl_const : array(int);
+    transl_block : array(int);
     lhs : string;
     len : string;
     defred : string;

@@ -34,24 +34,24 @@ module type S =
     val disjoint: t -> t -> bool
     val diff: t -> t -> t
     val cardinal: t -> int
-    val elements: t -> elt list
+    val elements: t -> list(elt)
     val min_elt: t -> elt
-    val min_elt_opt: t -> elt option
+    val min_elt_opt: t -> option(elt)
     val max_elt: t -> elt
-    val max_elt_opt: t -> elt option
+    val max_elt_opt: t -> option(elt)
     val choose: t -> elt
-    val choose_opt: t -> elt option
+    val choose_opt: t -> option(elt)
     val find: elt -> t -> elt
-    val find_opt: elt -> t -> elt option
+    val find_opt: elt -> t -> option(elt)
     val find_first: (elt -> bool) -> t -> elt
-    val find_first_opt: (elt -> bool) -> t -> elt option
+    val find_first_opt: (elt -> bool) -> t -> option(elt)
     val find_last: (elt -> bool) -> t -> elt
-    val find_last_opt: (elt -> bool) -> t -> elt option
+    val find_last_opt: (elt -> bool) -> t -> option(elt)
     val iter: (elt -> unit) -> t -> unit
     val fold: (elt -> 'a -> 'a) -> t -> 'a -> 'a
     val map: (elt -> elt) -> t -> t
     val filter: (elt -> bool) -> t -> t
-    val filter_map: (elt -> elt option) -> t -> t
+    val filter_map: (elt -> option(elt)) -> t -> t
     val partition: (elt -> bool) -> t -> t * t
     val split: elt -> t -> t * bool * t
     val is_empty: t -> bool
@@ -61,13 +61,13 @@ module type S =
     val subset: t -> t -> bool
     val for_all: (elt -> bool) -> t -> bool
     val exists: (elt -> bool) -> t -> bool
-    val to_list : t -> elt list
-    val of_list: elt list -> t
-    val to_seq_from : elt -> t -> elt Seq.t
-    val to_seq : t -> elt Seq.t
-    val to_rev_seq : t -> elt Seq.t
-    val add_seq : elt Seq.t -> t -> t
-    val of_seq : elt Seq.t -> t
+    val to_list : t -> list(elt)
+    val of_list: list(elt) -> t
+    val to_seq_from : elt -> t -> Seq.t(elt)
+    val to_seq : t -> Seq.t(elt)
+    val to_rev_seq : t -> Seq.t(elt)
+    val add_seq : Seq.t(elt) -> t -> t
+    val of_seq : Seq.t(elt) -> t
   end
 
 module Make(Ord: OrderedType) =

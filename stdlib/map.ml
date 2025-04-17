@@ -22,61 +22,61 @@ module type OrderedType =
 module type S =
   sig
     type key
-    type !+'a t
-    val empty: 'a t
-    val add: key -> 'a -> 'a t -> 'a t
-    val add_to_list: key -> 'a -> 'a list t -> 'a list t
-    val update: key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton: key -> 'a -> 'a t
-    val remove: key -> 'a t -> 'a t
+    type t(!+'a)
+    val empty: t('a)
+    val add: key -> 'a -> t('a) -> t('a)
+    val add_to_list: key -> 'a -> t(list('a)) -> t(list('a))
+    val update: key -> (option('a) -> option('a)) -> t('a) -> t('a)
+    val singleton: key -> 'a -> t('a)
+    val remove: key -> t('a) -> t('a)
     val merge:
-      (key -> 'a option -> 'b option -> 'c option) ->
-      'a t -> 'b t -> 'c t
-    val union: (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val cardinal: 'a t -> int
-    val bindings: 'a t -> (key * 'a) list
-    val min_binding: 'a t -> (key * 'a)
-    val min_binding_opt: 'a t -> (key * 'a) option
-    val max_binding: 'a t -> (key * 'a)
-    val max_binding_opt: 'a t -> (key * 'a) option
-    val choose: 'a t -> (key * 'a)
-    val choose_opt: 'a t -> (key * 'a) option
-    val find: key -> 'a t -> 'a
-    val find_opt: key -> 'a t -> 'a option
-    val find_first: (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt: (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last: (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt: (key -> bool) -> 'a t -> (key * 'a) option
-    val iter: (key -> 'a -> unit) -> 'a t -> unit
-    val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val map: ('a -> 'b) -> 'a t -> 'b t
-    val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
-    val filter: (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map: (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition: (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val split: key -> 'a t -> 'a t * 'a option * 'a t
-    val is_empty: 'a t -> bool
-    val mem: key -> 'a t -> bool
-    val equal: ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val for_all: (key -> 'a -> bool) -> 'a t -> bool
-    val exists: (key -> 'a -> bool) -> 'a t -> bool
-    val to_list : 'a t -> (key * 'a) list
-    val of_list : (key * 'a) list -> 'a t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_rev_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
+      (key -> option('a) -> option('b) -> option('c)) ->
+      t('a) -> t('b) -> t('c)
+    val union: (key -> 'a -> 'a -> option('a)) -> t('a) -> t('a) -> t('a)
+    val cardinal: t('a) -> int
+    val bindings: t('a) -> list(key * 'a)
+    val min_binding: t('a) -> (key * 'a)
+    val min_binding_opt: t('a) -> option(key * 'a)
+    val max_binding: t('a) -> (key * 'a)
+    val max_binding_opt: t('a) -> option(key * 'a)
+    val choose: t('a) -> (key * 'a)
+    val choose_opt: t('a) -> option(key * 'a)
+    val find: key -> t('a) -> 'a
+    val find_opt: key -> t('a) -> option('a)
+    val find_first: (key -> bool) -> t('a) -> key * 'a
+    val find_first_opt: (key -> bool) -> t('a) -> option(key * 'a)
+    val find_last: (key -> bool) -> t('a) -> key * 'a
+    val find_last_opt: (key -> bool) -> t('a) -> option(key * 'a)
+    val iter: (key -> 'a -> unit) -> t('a) -> unit
+    val fold: (key -> 'a -> 'b -> 'b) -> t('a) -> 'b -> 'b
+    val map: ('a -> 'b) -> t('a) -> t('b)
+    val mapi: (key -> 'a -> 'b) -> t('a) -> t('b)
+    val filter: (key -> 'a -> bool) -> t('a) -> t('a)
+    val filter_map: (key -> 'a -> option('b)) -> t('a) -> t('b)
+    val partition: (key -> 'a -> bool) -> t('a) -> t('a) * t('a)
+    val split: key -> t('a) -> t('a) * option('a) * t('a)
+    val is_empty: t('a) -> bool
+    val mem: key -> t('a) -> bool
+    val equal: ('a -> 'a -> bool) -> t('a) -> t('a) -> bool
+    val compare: ('a -> 'a -> int) -> t('a) -> t('a) -> int
+    val for_all: (key -> 'a -> bool) -> t('a) -> bool
+    val exists: (key -> 'a -> bool) -> t('a) -> bool
+    val to_list : t('a) -> list(key * 'a)
+    val of_list : list(key * 'a) -> t('a)
+    val to_seq : t('a) -> Seq.t(key * 'a)
+    val to_rev_seq : t('a) -> Seq.t(key * 'a)
+    val to_seq_from : key -> t('a) -> Seq.t(key * 'a)
+    val add_seq : Seq.t(key * 'a) -> t('a) -> t('a)
+    val of_seq : Seq.t(key * 'a) -> t('a)
   end
 
 module Make(Ord: OrderedType) = struct
 
     type key = Ord.t
 
-    type 'a t =
+    type t('a) =
         Empty
-      | Node of {l:'a t; v:key; d:'a; r:'a t; h:int}
+      | Node of {l:t('a); v:key; d:'a; r:t('a); h:int}
 
     let height = function
         Empty -> 0
@@ -458,7 +458,7 @@ module Make(Ord: OrderedType) = struct
           then (join lt v d rt, concat lf rf)
           else (concat lt rt, join lf v d rf)
 
-    type 'a enumeration = End | More of key * 'a * 'a t * 'a enumeration
+    type enumeration('a) = End | More of key * 'a * t('a) * enumeration('a)
 
     let rec cons_enum m e =
       match m with

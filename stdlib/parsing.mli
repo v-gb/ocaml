@@ -77,9 +77,9 @@ val set_trace: bool -> bool
 type parser_env
 
 type parse_tables =
-  { actions : (parser_env -> Obj.t) array;
-    transl_const : int array;
-    transl_block : int array;
+  { actions : array(parser_env -> Obj.t);
+    transl_const : array(int);
+    transl_block : array(int);
     lhs : string;
     len : string;
     defred : string;

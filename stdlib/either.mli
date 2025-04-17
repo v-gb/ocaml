@@ -53,82 +53,82 @@
    revisit this choice.
 *)
 
-type ('a, 'b) t = Left of 'a | Right of 'b (**)
+type t('a, 'b) = Left of 'a | Right of 'b (**)
 (** A value of [('a, 'b) Either.t] contains
     either a value of ['a]  or a value of ['b] *)
 
-val left : 'a -> ('a, 'b) t
+val left : 'a -> t('a, 'b)
 (** [left v] is [Left v]. *)
 
-val right : 'b -> ('a, 'b) t
+val right : 'b -> t('a, 'b)
 (** [right v] is [Right v]. *)
 
-val is_left : ('a, 'b) t -> bool
+val is_left : t('a, 'b) -> bool
 (** [is_left (Left v)] is [true], [is_left (Right v)] is [false]. *)
 
-val is_right : ('a, 'b) t -> bool
+val is_right : t('a, 'b) -> bool
 (** [is_right (Left v)] is [false], [is_right (Right v)] is [true]. *)
 
-val get_left : ('a, 'b) t -> 'a
+val get_left : t('a, 'b) -> 'a
 (** [get_left e] is [v] if [e] is [Left v] and raise otherwise.
 
     @raise Invalid_argument if [e] is [Right _].
 
     @since 5.4 *)
 
-val get_right : ('a, 'b) t -> 'b
+val get_right : t('a, 'b) -> 'b
 (** [get_right e] is [v] if [e] is [Right v] and raise otherwise.
 
     @raise Invalid_argument if [e] is [Left _].
 
     @since 5.4 *)
 
-val find_left : ('a, 'b) t -> 'a option
+val find_left : t('a, 'b) -> option('a)
 (** [find_left (Left v)] is [Some v], [find_left (Right _)] is [None] *)
 
-val find_right : ('a, 'b) t -> 'b option
+val find_right : t('a, 'b) -> option('b)
 (** [find_right (Right v)] is [Some v], [find_right (Left _)] is [None] *)
 
-val map_left : ('a1 -> 'a2) -> ('a1, 'b) t -> ('a2, 'b) t
+val map_left : ('a1 -> 'a2) -> t('a1, 'b) -> t('a2, 'b)
 (** [map_left f e] is [Left (f v)] if [e] is [Left v]
     and [e] if [e] is [Right _]. *)
 
-val map_right : ('b1 -> 'b2) -> ('a, 'b1) t -> ('a, 'b2) t
+val map_right : ('b1 -> 'b2) -> t('a, 'b1) -> t('a, 'b2)
 (** [map_right f e] is [Right (f v)] if [e] is [Right v]
     and [e] if [e] is [Left _]. *)
 
 val map :
-  left:('a1 -> 'a2) -> right:('b1 -> 'b2) -> ('a1, 'b1) t -> ('a2, 'b2) t
+  left:('a1 -> 'a2) -> right:('b1 -> 'b2) -> t('a1, 'b1) -> t('a2, 'b2)
 (** [map ~left ~right (Left v)] is [Left (left v)],
     [map ~left ~right (Right v)] is [Right (right v)]. *)
 
-val fold : left:('a -> 'c) -> right:('b -> 'c) -> ('a, 'b) t -> 'c
+val fold : left:('a -> 'c) -> right:('b -> 'c) -> t('a, 'b) -> 'c
 (** [fold ~left ~right (Left v)] is [left v], and
     [fold ~left ~right (Right v)] is [right v]. *)
 
-val retract : ('a, 'a) t -> 'a
+val retract : t('a, 'a) -> 'a
 (** [retract (Left v)] is [v], and [retract (Right v)] is [v].
 
     @since 5.4 *)
 
-val iter : left:('a -> unit) -> right:('b -> unit) -> ('a, 'b) t -> unit
+val iter : left:('a -> unit) -> right:('b -> unit) -> t('a, 'b) -> unit
 (** [iter ~left ~right (Left v)] is [left v], and
     [iter ~left ~right (Right v)] is [right v]. *)
 
-val for_all : left:('a -> bool) -> right:('b -> bool) -> ('a, 'b) t -> bool
+val for_all : left:('a -> bool) -> right:('b -> bool) -> t('a, 'b) -> bool
 (** [for_all ~left ~right (Left v)] is [left v], and
     [for_all ~left ~right (Right v)] is [right v]. *)
 
 val equal :
   left:('a -> 'a -> bool) -> right:('b -> 'b -> bool) ->
-  ('a, 'b) t -> ('a, 'b) t -> bool
+  t('a, 'b) -> t('a, 'b) -> bool
 (** [equal ~left ~right e0 e1] tests equality of [e0] and [e1] using [left]
     and [right] to respectively compare values wrapped by [Left _] and
     [Right _]. *)
 
 val compare :
   left:('a -> 'a -> int) -> right:('b -> 'b -> int) ->
-  ('a, 'b) t -> ('a, 'b) t -> int
+  t('a, 'b) -> t('a, 'b) -> int
 (** [compare ~left ~right e0 e1] totally orders [e0] and [e1] using [left] and
     [right] to respectively compare values wrapped by [Left _ ] and [Right _].
     [Left _] values are smaller than [Right _] values. *)

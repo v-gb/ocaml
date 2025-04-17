@@ -76,11 +76,11 @@ module Hashtbl : sig
   (** {1 Generic interface} *)
 
 
-  type (!'a, !'b) t = ('a, 'b) Hashtbl.t
+  type t(!'a, !'b) = Hashtbl.t('a, 'b)
   (** The type of hash tables from type ['a] to type ['b]. *)
 
   val create : ?random: (* thwart tools/sync_stdlib_docs *) bool ->
-               int -> ('a, 'b) t
+               int -> t('a, 'b)
   (** [Hashtbl.create n] creates a new, empty hash table, with initial
      size greater or equal to the suggested size [n].  For best results,
      [n] should be on the order of the expected number of elements that
@@ -119,19 +119,19 @@ module Hashtbl : sig
      @before 4.00 the [~random] parameter was not present and all
      hash tables were created in non-randomized mode. *)
 
-  val clear : ('a, 'b) t -> unit
+  val clear : t('a, 'b) -> unit
   (** Empty a hash table. Use [reset] instead of [clear] to shrink the
       size of the bucket table to its initial size. *)
 
-  val reset : ('a, 'b) t -> unit
+  val reset : t('a, 'b) -> unit
   (** Empty a hash table and shrink the size of the bucket table
       to its initial size.
       @since 4.00 *)
 
-  val copy : ('a, 'b) t -> ('a, 'b) t
+  val copy : t('a, 'b) -> t('a, 'b)
   (** Return a copy of the given hashtable. *)
 
-  val add : ('a, 'b) t -> key:'a -> data:'b -> unit
+  val add : t('a, 'b) -> key:'a -> data:'b -> unit
   (** [Hashtbl.add tbl ~key ~data] adds a binding of [key] to [data]
      in table [tbl].
 
@@ -143,37 +143,37 @@ module Hashtbl : sig
      If you desire the classic behavior of replacing elements,
      see {!replace}. *)
 
-  val find : ('a, 'b) t -> 'a -> 'b
+  val find : t('a, 'b) -> 'a -> 'b
   (** [Hashtbl.find tbl x] returns the current binding of [x] in [tbl],
      or raises [Not_found] if no such binding exists. *)
 
-  val find_opt : ('a, 'b) t -> 'a -> 'b option
+  val find_opt : t('a, 'b) -> 'a -> option('b)
   (** [Hashtbl.find_opt tbl x] returns the current binding of [x] in [tbl],
       or [None] if no such binding exists.
       @since 4.05 *)
 
-  val find_all : ('a, 'b) t -> 'a -> 'b list
+  val find_all : t('a, 'b) -> 'a -> list('b)
   (** [Hashtbl.find_all tbl x] returns the list of all data
      associated with [x] in [tbl].
      The current binding is returned first, then the previous
      bindings, in reverse order of introduction in the table. *)
 
-  val mem : ('a, 'b) t -> 'a -> bool
+  val mem : t('a, 'b) -> 'a -> bool
   (** [Hashtbl.mem tbl x] checks if [x] is bound in [tbl]. *)
 
-  val remove : ('a, 'b) t -> 'a -> unit
+  val remove : t('a, 'b) -> 'a -> unit
   (** [Hashtbl.remove tbl x] removes the current binding of [x] in [tbl],
      restoring the previous binding if it exists.
      It does nothing if [x] is not bound in [tbl]. *)
 
-  val replace : ('a, 'b) t -> key:'a -> data:'b -> unit
+  val replace : t('a, 'b) -> key:'a -> data:'b -> unit
   (** [Hashtbl.replace tbl ~key ~data] replaces the current binding of [key]
      in [tbl] by a binding of [key] to [data].  If [key] is unbound in [tbl],
      a binding of [key] to [data] is added to [tbl].
      This is functionally equivalent to {!remove}[ tbl key]
      followed by {!add}[ tbl key data]. *)
 
-  val iter : f:(key:'a -> data:'b -> unit) -> ('a, 'b) t -> unit
+  val iter : f:(key:'a -> data:'b -> unit) -> t('a, 'b) -> unit
   (** [Hashtbl.iter ~f tbl] applies [f] to all bindings in table [tbl].
      [f] receives the key as first argument, and the associated value
      as second argument. Each binding is presented exactly once to [f].
@@ -193,7 +193,7 @@ module Hashtbl : sig
      by [f] during the iteration.
   *)
 
-  val filter_map_inplace: f:(key:'a -> data:'b -> 'b option) -> ('a, 'b) t ->
+  val filter_map_inplace: f:(key:'a -> data:'b -> option('b)) -> t('a, 'b) ->
       unit
   (** [Hashtbl.filter_map_inplace ~f tbl] applies [f] to all bindings in
       table [tbl] and update each binding depending on the result of
@@ -205,7 +205,7 @@ module Hashtbl : sig
       @since 4.03 *)
 
   val fold :
-    f:(key:'a -> data:'b -> 'acc -> 'acc) -> ('a, 'b) t -> init:'acc -> 'acc
+    f:(key:'a -> data:'b -> 'acc -> 'acc) -> t('a, 'b) -> init:'acc -> 'acc
   (** [Hashtbl.fold ~f tbl ~init] computes
      [(f kN dN ... (f k1 d1 init)...)],
      where [k1 ... kN] are the keys of all bindings in [tbl],
@@ -227,7 +227,7 @@ module Hashtbl : sig
      by [f] during the iteration.
   *)
 
-  val length : ('a, 'b) t -> int
+  val length : t('a, 'b) -> int
   (** [Hashtbl.length tbl] returns the number of bindings in [tbl].
      It takes constant time.  Multiple bindings are counted once each, so
      [Hashtbl.length] gives the number of times [Hashtbl.iter] calls its
@@ -258,7 +258,7 @@ module Hashtbl : sig
       @since 4.03 *)
 
   val rebuild : ?random (* thwart tools/sync_stdlib_docs *) :bool ->
-      ('a, 'b) t -> ('a, 'b) t
+      t('a, 'b) -> t('a, 'b)
   (** Return a copy of the given hashtable.  Unlike {!copy},
       {!rebuild}[ h] re-hashes all the (key, value) entries of
       the original table [h].  The returned hash table is randomized if
@@ -283,13 +283,13 @@ module Hashtbl : sig
       (** Number of buckets in the table. *)
     max_bucket_length: int;
       (** Maximal number of bindings per bucket. *)
-    bucket_histogram: int array
+    bucket_histogram: array(int)
       (** Histogram of bucket sizes.  This array [histo] has
           length [max_bucket_length + 1].  The value of
           [histo.(i)] is the number of buckets whose size is [i]. *)
   }
 
-  val stats : ('a, 'b) t -> statistics
+  val stats : t('a, 'b) -> statistics
   (** [Hashtbl.stats tbl] returns statistics about the table [tbl]:
      number of buckets, size of the biggest bucket, distribution of
      buckets by size.
@@ -297,7 +297,7 @@ module Hashtbl : sig
 
   (** {1 Hash tables and Sequences} *)
 
-  val to_seq : ('a,'b) t -> ('a * 'b) Seq.t
+  val to_seq : t('a, 'b) -> Seq.t('a * 'b)
   (** Iterate on the whole table.  The order in which the bindings
       appear in the sequence is unspecified. However, if the table contains
       several bindings for the same key, they appear in reversed order of
@@ -308,23 +308,23 @@ module Hashtbl : sig
 
       @since 4.07 *)
 
-  val to_seq_keys : ('a,_) t -> 'a Seq.t
+  val to_seq_keys : t('a, _) -> Seq.t('a)
   (** Same as [Seq.map fst (to_seq m)]
       @since 4.07 *)
 
-  val to_seq_values : (_,'b) t -> 'b Seq.t
+  val to_seq_values : t(_, 'b) -> Seq.t('b)
   (** Same as [Seq.map snd (to_seq m)]
       @since 4.07 *)
 
-  val add_seq : ('a,'b) t -> ('a * 'b) Seq.t -> unit
+  val add_seq : t('a, 'b) -> Seq.t('a * 'b) -> unit
   (** Add the given bindings to the table, using {!add}
       @since 4.07 *)
 
-  val replace_seq : ('a,'b) t -> ('a * 'b) Seq.t -> unit
+  val replace_seq : t('a, 'b) -> Seq.t('a * 'b) -> unit
   (** Add the given bindings to the table, using {!replace}
       @since 4.07 *)
 
-  val of_seq : ('a * 'b) Seq.t -> ('a, 'b) t
+  val of_seq : Seq.t('a * 'b) -> t('a, 'b)
   (** Build a table from the given bindings. The bindings are added
       in the same order they appear in the sequence, using {!replace_seq},
       which means that if two pairs have the same key, only the latest one
@@ -389,54 +389,54 @@ module Hashtbl : sig
   module type S =
     sig
       type key
-      type !'a t
-      val create : int -> 'a t
-      val clear : 'a t -> unit
-      val reset : 'a t -> unit (** @since 4.00 *)
+      type t(!'a)
+      val create : int -> t('a)
+      val clear : t('a) -> unit
+      val reset : t('a) -> unit (** @since 4.00 *)
 
-      val copy : 'a t -> 'a t
-      val add : 'a t -> key:key -> data:'a -> unit
-      val remove : 'a t -> key -> unit
-      val find : 'a t -> key -> 'a
-      val find_opt : 'a t -> key -> 'a option
+      val copy : t('a) -> t('a)
+      val add : t('a) -> key:key -> data:'a -> unit
+      val remove : t('a) -> key -> unit
+      val find : t('a) -> key -> 'a
+      val find_opt : t('a) -> key -> option('a)
       (** @since 4.05 *)
 
-      val find_all : 'a t -> key -> 'a list
-      val replace : 'a t -> key:key -> data:'a -> unit
-      val mem : 'a t -> key -> bool
-      val iter : f:(key:key -> data:'a -> unit) -> 'a t -> unit
-      val filter_map_inplace: f:(key:key -> data:'a -> 'a option) -> 'a t ->
+      val find_all : t('a) -> key -> list('a)
+      val replace : t('a) -> key:key -> data:'a -> unit
+      val mem : t('a) -> key -> bool
+      val iter : f:(key:key -> data:'a -> unit) -> t('a) -> unit
+      val filter_map_inplace: f:(key:key -> data:'a -> option('a)) -> t('a) ->
         unit
       (** @since 4.03 *)
 
       val fold :
-        f:(key:key -> data:'a -> 'acc -> 'acc) -> 'a t -> init:'acc -> 'acc
-      val length : 'a t -> int
-      val stats: 'a t -> statistics (** @since 4.00 *)
+        f:(key:key -> data:'a -> 'acc -> 'acc) -> t('a) -> init:'acc -> 'acc
+      val length : t('a) -> int
+      val stats: t('a) -> statistics (** @since 4.00 *)
 
-      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq : t('a) -> Seq.t(key * 'a)
       (** @since 4.07 *)
 
-      val to_seq_keys : _ t -> key Seq.t
+      val to_seq_keys : t(_) -> Seq.t(key)
       (** @since 4.07 *)
 
-      val to_seq_values : 'a t -> 'a Seq.t
+      val to_seq_values : t('a) -> Seq.t('a)
       (** @since 4.07 *)
 
-      val add_seq : 'a t -> (key * 'a) Seq.t -> unit
+      val add_seq : t('a) -> Seq.t(key * 'a) -> unit
       (** @since 4.07 *)
 
-      val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
+      val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
       (** @since 4.07 *)
 
-      val of_seq : (key * 'a) Seq.t -> 'a t
+      val of_seq : Seq.t(key * 'a) -> t('a)
       (** @since 4.07 *)
     end
   (** The output signature of the functor {!Make}. *)
 
     module Make : functor (H : HashedType) -> S
     with type key = H.t
-     and type 'a t = 'a Hashtbl.Make(H).t
+     and type t('a) = Hashtbl.Make(H).t('a)
   (** Functor building an implementation of the hashtable structure.
       The functor [Hashtbl.Make] returns a structure containing
       a type [key] of keys and a type ['a t] of hash tables
@@ -469,46 +469,46 @@ module Hashtbl : sig
   module type SeededS =
     sig
       type key
-      type !'a t
+      type t(!'a)
       val create : ?random (* thwart tools/sync_stdlib_docs *) :bool ->
-                   int -> 'a t
-      val clear : 'a t -> unit
-      val reset : 'a t -> unit
-      val copy : 'a t -> 'a t
-      val add : 'a t -> key:key -> data:'a -> unit
-      val remove : 'a t -> key -> unit
-      val find : 'a t -> key -> 'a
-      val find_opt : 'a t -> key -> 'a option (** @since 4.05 *)
+                   int -> t('a)
+      val clear : t('a) -> unit
+      val reset : t('a) -> unit
+      val copy : t('a) -> t('a)
+      val add : t('a) -> key:key -> data:'a -> unit
+      val remove : t('a) -> key -> unit
+      val find : t('a) -> key -> 'a
+      val find_opt : t('a) -> key -> option('a) (** @since 4.05 *)
 
-      val find_all : 'a t -> key -> 'a list
-      val replace : 'a t -> key:key -> data:'a -> unit
-      val mem : 'a t -> key -> bool
-      val iter : f:(key:key -> data:'a -> unit) -> 'a t -> unit
-      val filter_map_inplace: f:(key:key -> data:'a -> 'a option) -> 'a t ->
+      val find_all : t('a) -> key -> list('a)
+      val replace : t('a) -> key:key -> data:'a -> unit
+      val mem : t('a) -> key -> bool
+      val iter : f:(key:key -> data:'a -> unit) -> t('a) -> unit
+      val filter_map_inplace: f:(key:key -> data:'a -> option('a)) -> t('a) ->
         unit
       (** @since 4.03 *)
 
       val fold :
-        f:(key:key -> data:'a -> 'acc -> 'acc) -> 'a t -> init:'acc -> 'acc
-      val length : 'a t -> int
-      val stats: 'a t -> statistics
+        f:(key:key -> data:'a -> 'acc -> 'acc) -> t('a) -> init:'acc -> 'acc
+      val length : t('a) -> int
+      val stats: t('a) -> statistics
 
-      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq : t('a) -> Seq.t(key * 'a)
       (** @since 4.07 *)
 
-      val to_seq_keys : _ t -> key Seq.t
+      val to_seq_keys : t(_) -> Seq.t(key)
       (** @since 4.07 *)
 
-      val to_seq_values : 'a t -> 'a Seq.t
+      val to_seq_values : t('a) -> Seq.t('a)
       (** @since 4.07 *)
 
-      val add_seq : 'a t -> (key * 'a) Seq.t -> unit
+      val add_seq : t('a) -> Seq.t(key * 'a) -> unit
       (** @since 4.07 *)
 
-      val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
+      val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
       (** @since 4.07 *)
 
-      val of_seq : (key * 'a) Seq.t -> 'a t
+      val of_seq : Seq.t(key * 'a) -> t('a)
       (** @since 4.07 *)
     end
   (** The output signature of the functor {!MakeSeeded}.
@@ -516,7 +516,7 @@ module Hashtbl : sig
 
     module MakeSeeded (H : SeededHashedType) : SeededS
     with type key = H.t
-     and type 'a t = 'a Hashtbl.MakeSeeded(H).t
+     and type t('a) = Hashtbl.MakeSeeded(H).t('a)
   (** Functor building an implementation of the hashtable structure.
       The functor [Hashtbl.MakeSeeded] returns a structure containing
       a type [key] of keys and a type ['a t] of hash tables
@@ -721,13 +721,13 @@ module Map : sig
       type key
       (** The type of the map keys. *)
 
-      type !+'a t
+      type t(!+'a)
       (** The type of maps from type [key] to type ['a]. *)
 
-      val empty: 'a t
+      val empty: t('a)
       (** The empty map. *)
 
-      val add: key:key -> data:'a -> 'a t -> 'a t
+      val add: key:key -> data:'a -> t('a) -> t('a)
       (** [add ~key ~data m] returns a map containing the same bindings as
           [m], plus a binding of [key] to [data]. If [key] was already bound
           in [m] to a value that is physically equal to [data],
@@ -736,13 +736,13 @@ module Map : sig
           of [key] in [m] disappears.
           @before 4.03 Physical equality was not ensured. *)
 
-      val add_to_list: key:key -> data:'a -> 'a list t -> 'a list t
+      val add_to_list: key:key -> data:'a -> t(list('a)) -> t(list('a))
       (** [add_to_list ~key ~data m] is [m] with [key] mapped to [l] such
           that [l] is [data :: Map.find key m] if [key] was bound in
           [m] and [[data]] otherwise.
           @since 5.1 *)
 
-      val update: key:key -> f:('a option -> 'a option) -> 'a t -> 'a t
+      val update: key:key -> f:(option('a) -> option('a)) -> t('a) -> t('a)
       (** [update ~key ~f m] returns a map containing the same bindings as
           [m], except for the binding of [key]. Depending on the value of
           [y] where [y] is [f (find_opt key m)], the binding of [key] is
@@ -754,12 +754,12 @@ module Map : sig
           physically equal to [m]).
           @since 4.06 *)
 
-      val singleton: key -> 'a -> 'a t
+      val singleton: key -> 'a -> t('a)
       (** [singleton x y] returns the one-element map that contains a binding
           [y] for [x].
           @since 3.12 *)
 
-      val remove: key -> 'a t -> 'a t
+      val remove: key -> t('a) -> t('a)
       (** [remove x m] returns a map containing the same bindings as
           [m], except for [x] which is unbound in the returned map.
           If [x] was not in [m], [m] is returned unchanged
@@ -767,8 +767,8 @@ module Map : sig
           @before 4.03 Physical equality was not ensured. *)
 
       val merge:
-        f:(key -> 'a option -> 'b option -> 'c option) ->
-        'a t -> 'b t -> 'c t
+        f:(key -> option('a) -> option('b) -> option('c)) ->
+        t('a) -> t('b) -> t('c)
       (** [merge ~f m1 m2] computes a map whose keys are a subset of the keys of
           [m1] and of [m2]. The presence of each such binding, and the
           corresponding value, is determined with the function [f].
@@ -777,7 +777,7 @@ module Map : sig
           for any key [x], provided that [f x None None = None].
           @since 3.12 *)
 
-      val union: f:(key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+      val union: f:(key -> 'a -> 'a -> option('a)) -> t('a) -> t('a) -> t('a)
       (** [union ~f m1 m2] computes a map whose keys are a subset of the keys
           of [m1] and of [m2].  When the same binding is defined in both
           arguments, the function [f] is used to combine them.
@@ -790,48 +790,48 @@ module Map : sig
 
           @since 4.03 *)
 
-      val cardinal: 'a t -> int
+      val cardinal: t('a) -> int
       (** Return the number of bindings of a map.
           @since 3.12 *)
 
       (** {1:bindings Bindings} *)
 
-      val bindings: 'a t -> (key * 'a) list
+      val bindings: t('a) -> list(key * 'a)
       (** Return the list of all bindings of the given map.
           The returned list is sorted in increasing order of keys with respect
           to the ordering [Ord.compare], where [Ord] is the argument
           given to {!Map.Make}.
           @since 3.12 *)
 
-      val min_binding: 'a t -> (key * 'a)
+      val min_binding: t('a) -> (key * 'a)
       (** Return the binding with the smallest key in a given map
           (with respect to the [Ord.compare] ordering), or raise
           [Not_found] if the map is empty.
           @since 3.12 *)
 
-      val min_binding_opt: 'a t -> (key * 'a) option
+      val min_binding_opt: t('a) -> option(key * 'a)
       (** Return the binding with the smallest key in the given map
           (with respect to the [Ord.compare] ordering), or [None]
           if the map is empty.
           @since 4.05 *)
 
-      val max_binding: 'a t -> (key * 'a)
+      val max_binding: t('a) -> (key * 'a)
       (** Same as {!min_binding}, but returns the binding with
           the largest key in the given map.
           @since 3.12 *)
 
-      val max_binding_opt: 'a t -> (key * 'a) option
+      val max_binding_opt: t('a) -> option(key * 'a)
       (** Same as {!min_binding_opt}, but returns the binding with
           the largest key in the given map.
           @since 4.05 *)
 
-      val choose: 'a t -> (key * 'a)
+      val choose: t('a) -> (key * 'a)
       (** Return one binding of the given map, or raise [Not_found] if
           the map is empty. Which binding is chosen is unspecified,
           but equal bindings will be chosen for equal maps.
           @since 3.12 *)
 
-      val choose_opt: 'a t -> (key * 'a) option
+      val choose_opt: t('a) -> option(key * 'a)
       (** Return one binding of the given map, or [None] if
           the map is empty. Which binding is chosen is unspecified,
           but equal bindings will be chosen for equal maps.
@@ -839,16 +839,16 @@ module Map : sig
 
       (** {1:searching Searching} *)
 
-      val find: key -> 'a t -> 'a
+      val find: key -> t('a) -> 'a
       (** [find x m] returns the current value of [x] in [m],
           or raises [Not_found] if no binding for [x] exists. *)
 
-      val find_opt: key -> 'a t -> 'a option
+      val find_opt: key -> t('a) -> option('a)
       (** [find_opt x m] returns [Some v] if the current value of [x]
           in [m] is [v], or [None] if no binding for [x] exists.
           @since 4.05 *)
 
-      val find_first: f:(key -> bool) -> 'a t -> key * 'a
+      val find_first: f:(key -> bool) -> t('a) -> key * 'a
       (** [find_first ~f m], where [f] is a monotonically increasing function,
           returns the binding of [m] with the lowest key [k] such that [f k],
           or raises [Not_found] if no such key exists.
@@ -860,19 +860,19 @@ module Map : sig
 
           @since 4.05 *)
 
-      val find_first_opt: f:(key -> bool) -> 'a t -> (key * 'a) option
+      val find_first_opt: f:(key -> bool) -> t('a) -> option(key * 'a)
       (** [find_first_opt ~f m], where [f] is a monotonically increasing
           function, returns an option containing the binding of [m] with the
           lowest key [k] such that [f k], or [None] if no such key exists.
           @since 4.05 *)
 
-      val find_last: f:(key -> bool) -> 'a t -> key * 'a
+      val find_last: f:(key -> bool) -> t('a) -> key * 'a
       (** [find_last ~f m], where [f] is a monotonically decreasing function,
           returns the binding of [m] with the highest key [k] such that [f k],
           or raises [Not_found] if no such key exists.
           @since 4.05 *)
 
-      val find_last_opt: f:(key -> bool) -> 'a t -> (key * 'a) option
+      val find_last_opt: f:(key -> bool) -> t('a) -> option(key * 'a)
       (** [find_last_opt ~f m], where [f] is a monotonically decreasing
           function, returns an option containing the binding of [m] with
           the highest key [k] such that [f k], or [None] if no such key
@@ -881,32 +881,32 @@ module Map : sig
 
       (** {1:traversing Traversing} *)
 
-      val iter: f:(key:key -> data:'a -> unit) -> 'a t -> unit
+      val iter: f:(key:key -> data:'a -> unit) -> t('a) -> unit
       (** [iter ~f m] applies [f] to all bindings in map [m].
           [f] receives the key as first argument, and the associated value
           as second argument.  The bindings are passed to [f] in increasing
           order with respect to the ordering over the type of the keys. *)
 
       val fold:
-        f:(key:key -> data:'a -> 'acc -> 'acc) -> 'a t -> init:'acc -> 'acc
+        f:(key:key -> data:'a -> 'acc -> 'acc) -> t('a) -> init:'acc -> 'acc
       (** [fold ~f m ~init] computes [(f kN dN ... (f k1 d1 init)...)],
           where [k1 ... kN] are the keys of all bindings in [m]
           (in increasing order), and [d1 ... dN] are the associated data. *)
 
       (** {1:transforming Transforming} *)
 
-      val map: f:('a -> 'b) -> 'a t -> 'b t
+      val map: f:('a -> 'b) -> t('a) -> t('b)
       (** [map ~f m] returns a map with same domain as [m], where the
           associated value [a] of all bindings of [m] has been
           replaced by the result of the application of [f] to [a].
           The bindings are passed to [f] in increasing order
           with respect to the ordering over the type of the keys. *)
 
-      val mapi: f:(key -> 'a -> 'b) -> 'a t -> 'b t
+      val mapi: f:(key -> 'a -> 'b) -> t('a) -> t('b)
       (** Same as {!map}, but the function receives as arguments both the
           key and the associated value for each binding of the map. *)
 
-      val filter: f:(key -> 'a -> bool) -> 'a t -> 'a t
+      val filter: f:(key -> 'a -> bool) -> t('a) -> t('a)
       (** [filter ~f m] returns the map with all the bindings in [m]
           that satisfy predicate [p]. If every binding in [m] satisfies [f],
           [m] is returned unchanged (the result of the function is then
@@ -914,7 +914,7 @@ module Map : sig
           @since 3.12
           @before 4.03 Physical equality was not ensured. *)
 
-      val filter_map: f:(key -> 'a -> 'b option) -> 'a t -> 'b t
+      val filter_map: f:(key -> 'a -> option('b)) -> t('a) -> t('b)
       (** [filter_map ~f m] applies the function [f] to every binding of
           [m], and builds a map from the results. For each binding
           [(k, v)] in the input map:
@@ -933,14 +933,14 @@ module Map : sig
 
           @since 4.11 *)
 
-      val partition: f:(key -> 'a -> bool) -> 'a t -> 'a t * 'a t
+      val partition: f:(key -> 'a -> bool) -> t('a) -> t('a) * t('a)
       (** [partition ~f m] returns a pair of maps [(m1, m2)], where
           [m1] contains all the bindings of [m] that satisfy the
           predicate [f], and [m2] is the map with all the bindings of
           [m] that do not satisfy [f].
           @since 3.12 *)
 
-      val split: key -> 'a t -> 'a t * 'a option * 'a t
+      val split: key -> t('a) -> t('a) * option('a) * t('a)
       (** [split x m] returns a triple [(l, data, r)], where
             [l] is the map with all the bindings of [m] whose key
           is strictly less than [x];
@@ -952,63 +952,63 @@ module Map : sig
 
       (** {1:predicates Predicates and comparisons} *)
 
-      val is_empty: 'a t -> bool
+      val is_empty: t('a) -> bool
       (** Test whether a map is empty or not. *)
 
-      val mem: key -> 'a t -> bool
+      val mem: key -> t('a) -> bool
       (** [mem x m] returns [true] if [m] contains a binding for [x],
           and [false] otherwise. *)
 
-      val equal: cmp:('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+      val equal: cmp:('a -> 'a -> bool) -> t('a) -> t('a) -> bool
       (** [equal ~cmp m1 m2] tests whether the maps [m1] and [m2] are
           equal, that is, contain equal keys and associate them with
           equal data.  [cmp] is the equality predicate used to compare
           the data associated with the keys. *)
 
-      val compare: cmp:('a -> 'a -> int) -> 'a t -> 'a t -> int
+      val compare: cmp:('a -> 'a -> int) -> t('a) -> t('a) -> int
       (** Total ordering between maps.  The first argument is a total ordering
           used to compare data associated with equal keys in the two maps. *)
 
-      val for_all: f:(key -> 'a -> bool) -> 'a t -> bool
+      val for_all: f:(key -> 'a -> bool) -> t('a) -> bool
       (** [for_all ~f m] checks if all the bindings of the map
           satisfy the predicate [f].
           @since 3.12 *)
 
-      val exists: f:(key -> 'a -> bool) -> 'a t -> bool
+      val exists: f:(key -> 'a -> bool) -> t('a) -> bool
       (** [exists ~f m] checks if at least one binding of the map
           satisfies the predicate [f].
           @since 3.12 *)
 
       (** {1:converting Converting} *)
 
-      val to_list : 'a t -> (key * 'a) list
+      val to_list : t('a) -> list(key * 'a)
       (** [to_list m] is {!bindings}[ m].
           @since 5.1 *)
 
-      val of_list : (key * 'a) list -> 'a t
+      val of_list : list(key * 'a) -> t('a)
       (** [of_list bs] adds the bindings of [bs] to the empty map,
           in list order (if a key is bound twice in [bs] the last one
           takes over).
           @since 5.1 *)
 
-      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq : t('a) -> Seq.t(key * 'a)
       (** Iterate on the whole map, in ascending order of keys
           @since 4.07 *)
 
-      val to_rev_seq : 'a t -> (key * 'a) Seq.t
+      val to_rev_seq : t('a) -> Seq.t(key * 'a)
       (** Iterate on the whole map, in descending order of keys
           @since 4.12 *)
 
-      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> t('a) -> Seq.t(key * 'a)
       (** [to_seq_from k m] iterates on a subset of the bindings of [m],
           in ascending order of keys, from key [k] or above.
           @since 4.07 *)
 
-      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val add_seq : Seq.t(key * 'a) -> t('a) -> t('a)
       (** Add the given bindings to the map, in order.
           @since 4.07 *)
 
-      val of_seq : (key * 'a) Seq.t -> 'a t
+      val of_seq : Seq.t(key * 'a) -> t('a)
       (** Build a map from the given bindings
           @since 4.07 *)
     end
@@ -1016,7 +1016,7 @@ module Map : sig
 
     module Make : functor (Ord : OrderedType) -> S
     with type key = Ord.t
-     and type 'a t = 'a Map.Make(Ord).t
+     and type t('a) = Map.Make(Ord).t('a)
   (** Functor building an implementation of the map structure
      given a totally ordered type. *)
 
@@ -1118,7 +1118,7 @@ module Set : sig
 
       (** {1:elements Elements} *)
 
-      val elements: t -> elt list
+      val elements: t -> list(elt)
       (** Return the list of all elements of the given set.
           The returned list is sorted in increasing order with respect
           to the ordering [Ord.compare], where [Ord] is the argument
@@ -1129,7 +1129,7 @@ module Set : sig
           (with respect to the [Ord.compare] ordering), or raise
           [Not_found] if the set is empty. *)
 
-      val min_elt_opt: t -> elt option
+      val min_elt_opt: t -> option(elt)
       (** Return the smallest element of the given set
           (with respect to the [Ord.compare] ordering), or [None]
           if the set is empty.
@@ -1139,7 +1139,7 @@ module Set : sig
       (** Same as {!min_elt}, but returns the largest element of the
           given set. *)
 
-      val max_elt_opt: t -> elt option
+      val max_elt_opt: t -> option(elt)
       (** Same as {!min_elt_opt}, but returns the largest element of the
           given set.
           @since 4.05 *)
@@ -1149,7 +1149,7 @@ module Set : sig
           the set is empty. Which element is chosen is unspecified,
           but equal elements will be chosen for equal sets. *)
 
-      val choose_opt: t -> elt option
+      val choose_opt: t -> option(elt)
       (** Return one element of the given set, or [None] if
           the set is empty. Which element is chosen is unspecified,
           but equal elements will be chosen for equal sets.
@@ -1163,7 +1163,7 @@ module Set : sig
           exists.
           @since 4.01 *)
 
-      val find_opt: elt -> t -> elt option
+      val find_opt: elt -> t -> option(elt)
       (** [find_opt x s] returns the element of [s] equal to [x] (according
           to [Ord.compare]), or [None] if no such element
           exists.
@@ -1181,7 +1181,7 @@ module Set : sig
 
           @since 4.05 *)
 
-      val find_first_opt: f:(elt -> bool) -> t -> elt option
+      val find_first_opt: f:(elt -> bool) -> t -> option(elt)
       (** [find_first_opt ~f s], where [f] is a monotonically increasing
           function, returns an option containing the lowest element [e] of [s]
           such that [f e], or [None] if no such element exists.
@@ -1194,7 +1194,7 @@ module Set : sig
           or raises [Not_found] if no such element exists.
           @since 4.05 *)
 
-      val find_last_opt: f:(elt -> bool) -> t -> elt option
+      val find_last_opt: f:(elt -> bool) -> t -> option(elt)
       (** [find_last_opt ~f s], where [f] is a monotonically decreasing
           function, returns an option containing the highest element [e] of [s]
           such that [f e], or [None] if no such element exists.
@@ -1232,7 +1232,7 @@ module Set : sig
           physically equal to [s]).
           @before 4.03 Physical equality was not ensured.*)
 
-      val filter_map: f:(elt -> elt option) -> t -> t
+      val filter_map: f:(elt -> option(elt)) -> t -> t
       (** [filter_map ~f s] returns the set of all [v] such that
           [f x = Some v] for some element [x] of [s].
 
@@ -1292,34 +1292,34 @@ module Set : sig
 
       (** {1:converting Converting} *)
 
-      val to_list : t -> elt list
+      val to_list : t -> list(elt)
       (** [to_list s] is {!elements}[ s].
           @since 5.1 *)
 
-      val of_list: elt list -> t
+      val of_list: list(elt) -> t
       (** [of_list l] creates a set from a list of elements.
           This is usually more efficient than folding [add] over the list,
           except perhaps for lists with many duplicated elements.
           @since 4.02 *)
 
-      val to_seq_from : elt -> t -> elt Seq.t
+      val to_seq_from : elt -> t -> Seq.t(elt)
       (** [to_seq_from x s] iterates on a subset of the elements of [s]
           in ascending order, from [x] or above.
           @since 4.07 *)
 
-      val to_seq : t -> elt Seq.t
+      val to_seq : t -> Seq.t(elt)
       (** Iterate on the whole set, in ascending order
           @since 4.07 *)
 
-      val to_rev_seq : t -> elt Seq.t
+      val to_rev_seq : t -> Seq.t(elt)
       (** Iterate on the whole set, in descending order
           @since 4.12 *)
 
-      val add_seq : elt Seq.t -> t -> t
+      val add_seq : Seq.t(elt) -> t -> t
       (** Add the given elements to the set, in order.
           @since 4.07 *)
 
-      val of_seq : elt Seq.t -> t
+      val of_seq : Seq.t(elt) -> t
       (** Build a set from the given bindings
           @since 4.07 *)
     end

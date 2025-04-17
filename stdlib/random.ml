@@ -16,13 +16,13 @@
 
 (* Pseudo-random number generator *)
 
-external random_seed: unit -> int array = "caml_sys_random_seed"
+external random_seed: unit -> array(int) = "caml_sys_random_seed"
 
 module State = struct
 
   open Bigarray
 
-  type t = (int64, int64_elt, c_layout) Array1.t
+  type t = Array1.t(int64, int64_elt, c_layout)
 
   external next: t -> (int64[@unboxed])
       = "caml_lxm_next" "caml_lxm_next_unboxed" [@@noalloc]

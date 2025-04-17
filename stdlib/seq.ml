@@ -15,11 +15,11 @@
 
 (* Module [Seq]: functional iterators *)
 
-type +'a node =
+type node(+'a) =
   | Nil
-  | Cons of 'a * 'a t
+  | Cons of 'a * t('a)
 
-and 'a t = unit -> 'a node
+and t('a) = unit -> node('a)
 
 let empty () = Nil
 
@@ -429,26 +429,26 @@ exception Forced_twice
 
 module Suspension = struct
 
-  type 'a suspension =
+  type suspension('a) =
     unit -> 'a
 
   (* Conversions. *)
 
-  let to_lazy : 'a suspension -> 'a Lazy.t =
+  let to_lazy : suspension('a) -> Lazy.t('a) =
     Lazy.from_fun
     (* fun s -> lazy (s()) *)
 
-  let from_lazy (s : 'a Lazy.t) : 'a suspension =
+  let from_lazy (s : Lazy.t('a)) : suspension('a) =
     fun () -> Lazy.force s
 
   (* [memoize] turns an arbitrary suspension into a persistent suspension. *)
 
-  let memoize (s : 'a suspension) : 'a suspension =
+  let memoize (s : suspension('a)) : suspension('a) =
     from_lazy (to_lazy s)
 
   (* [failure] is a suspension that fails when forced. *)
 
-  let failure : _ suspension =
+  let failure : suspension(_) =
     fun () ->
       (* A suspension created by [once] has been forced twice. *)
       raise Forced_twice
@@ -457,7 +457,7 @@ module Suspension = struct
      at most once. If it is forced more than once, then [Forced_twice] is
      raised. *)
 
-  let once (f : 'a suspension) : 'a suspension =
+  let once (f : suspension('a)) : suspension('a) =
     let action = Atomic.make f in
     fun () ->
       (* Get the function currently stored in [action], and write the

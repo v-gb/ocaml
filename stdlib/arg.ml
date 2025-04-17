@@ -21,25 +21,25 @@ type anon_fun = (string -> unit)
 type spec =
   | Unit of (unit -> unit)     (* Call the function with unit argument *)
   | Bool of (bool -> unit)     (* Call the function with a bool argument *)
-  | Set of bool ref            (* Set the reference to true *)
-  | Clear of bool ref          (* Set the reference to false *)
+  | Set of ref(bool)            (* Set the reference to true *)
+  | Clear of ref(bool)          (* Set the reference to false *)
   | String of (string -> unit) (* Call the function with a string argument *)
-  | Set_string of string ref   (* Set the reference to the string argument *)
+  | Set_string of ref(string)   (* Set the reference to the string argument *)
   | Int of (int -> unit)       (* Call the function with an int argument *)
-  | Set_int of int ref         (* Set the reference to the int argument *)
+  | Set_int of ref(int)         (* Set the reference to the int argument *)
   | Float of (float -> unit)   (* Call the function with a float argument *)
-  | Set_float of float ref     (* Set the reference to the float argument *)
-  | Tuple of spec list         (* Take several arguments according to the
+  | Set_float of ref(float)     (* Set the reference to the float argument *)
+  | Tuple of list(spec)         (* Take several arguments according to the
                                   spec list *)
-  | Symbol of string list * (string -> unit)
+  | Symbol of list(string) * (string -> unit)
                                (* Take one of the symbols as argument and
                                   call the function with the symbol. *)
   | Rest of (string -> unit)   (* Stop interpreting keywords and call the
                                   function with each remaining argument *)
-  | Rest_all of (string list -> unit)
+  | Rest_all of (list(string) -> unit)
                                (* Stop interpreting keywords and call the
                                   function with all remaining arguments. *)
-  | Expand of (string -> string array) (* If the remaining arguments to process
+  | Expand of (string -> array(string)) (* If the remaining arguments to process
                                           are of the form
                                           [["-foo"; "arg"] @ rest] where "foo"
                                           is registered as [Expand f], then the

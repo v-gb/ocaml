@@ -153,7 +153,7 @@ external to_int : nativeint -> int = "%nativeint_to_int"
    integer (type [int]).  The high-order bit is lost during
    the conversion. *)
 
-val unsigned_to_int : nativeint -> int option
+val unsigned_to_int : nativeint -> option(int)
 (** Same as {!to_int}, but interprets the argument as an {e unsigned} integer.
     Returns [None] if the unsigned value of the argument cannot fit into an
     [int].
@@ -200,7 +200,7 @@ external of_string : string -> nativeint = "caml_nativeint_of_string"
    a valid representation of an integer, or if the integer represented
    exceeds the range of integers representable in type [nativeint]. *)
 
-val of_string_opt: string -> nativeint option
+val of_string_opt: string -> option(nativeint)
 (** Same as [of_string], but return [None] instead of raising.
     @since 4.05 *)
 

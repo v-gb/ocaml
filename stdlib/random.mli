@@ -35,7 +35,7 @@ val init : int -> unit
 (** Initialize the domain-local generator, using the argument as a seed.
     The same seed will always yield the same sequence of numbers. *)
 
-val full_init : int array -> unit
+val full_init : array(int) -> unit
 (** Same as {!Random.init} but takes more data as seed. *)
 
 val self_init : unit -> unit
@@ -181,7 +181,7 @@ module State : sig
   type t
   (** The type of PRNG states. *)
 
-  val make : int array -> t
+  val make : array(int) -> t
   (** Create a new state and initialize it with the given seed. *)
 
   val make_self_init : unit -> t

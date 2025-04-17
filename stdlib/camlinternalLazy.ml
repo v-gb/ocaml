@@ -15,7 +15,7 @@
 
 (* Internals of forcing lazy values. *)
 
-type 'a t = 'a lazy_t
+type t('a) = lazy_t('a)
 
 exception Undefined
 
@@ -66,7 +66,7 @@ let do_force_val_block blk =
   result
 
 (* Called by [force_gen] *)
-let force_gen_lazy_block ~only_val (blk : 'arg lazy_t) =
+let force_gen_lazy_block ~only_val (blk : lazy_t('arg)) =
   (* We expect the tag to be [lazy_tag], but may be other tags due to
      concurrent forcing of lazy values. *)
   match update_to_forcing (Obj.repr blk) with
@@ -80,7 +80,7 @@ let force_lazy_block blk = force_gen_lazy_block ~only_val:false blk
 (* [force_gen ~only_val:false] is not used, since [Lazy.force] is
    declared as a primitive whose code inlines the tag tests of its
    argument, except when afl instrumentation is turned on. *)
-let force_gen ~only_val (lzv : 'arg lazy_t) =
+let force_gen ~only_val (lzv : lazy_t('arg)) =
   (* Using [Sys.opaque_identity] prevents two potential problems:
      - If the value is known to have Forward_tag, then it could have been
        shortcut during GC, so that information must be forgotten (see GPR#713

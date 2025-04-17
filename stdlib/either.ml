@@ -13,7 +13,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type ('a, 'b) t = Left of 'a | Right of 'b
+type t('a, 'b) = Left of 'a | Right of 'b
 
 let left v = Left v
 let right v = Right v

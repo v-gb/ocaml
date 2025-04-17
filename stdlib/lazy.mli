@@ -15,7 +15,7 @@
 
 (** Deferred computations. *)
 
-type 'a t = 'a CamlinternalLazy.t
+type t('a) = CamlinternalLazy.t('a)
 (** A value of type ['a Lazy.t] is a deferred computation, called a suspension,
     that has a result of type ['a]. The special expression syntax [lazy (expr)]
     makes a suspension of the computation of [expr], without computing
@@ -62,7 +62,7 @@ exception Undefined
     recursively.
 *)
 
-external force : 'a t -> 'a = "%lazy_force"
+external force : t('a) -> 'a = "%lazy_force"
 (** [force x] forces the suspension [x] and returns its result. If [x] has
     already been forced, [Lazy.force x] returns the same value again without
     recomputing it.  If it raised an exception, the same exception is raised
@@ -73,7 +73,7 @@ external force : 'a t -> 'a = "%lazy_force"
 
 (** {1 Iterators} *)
 
-val map : ('a -> 'b) -> 'a t -> 'b t
+val map : ('a -> 'b) -> t('a) -> t('b)
 (** [map f x] returns a suspension that, when forced,
     forces [x] and applies [f] to its value.
 
@@ -84,19 +84,19 @@ val map : ('a -> 'b) -> 'a t -> 'b t
 
 (** {1 Reasoning on already-forced suspensions} *)
 
-val is_val : 'a t -> bool
+val is_val : t('a) -> bool
 (** [is_val x] returns [true] if [x] has already been forced and
     did not raise an exception.
     @since 4.00 *)
 
-val from_val : 'a -> 'a t
+val from_val : 'a -> t('a)
 (** [from_val v] evaluates [v] first (as any function would) and returns
     an already-forced suspension of its result.
     It is the same as [let x = v in lazy x], but uses dynamic tests
     to optimize suspension creation in some cases.
     @since 4.00 *)
 
-val map_val : ('a -> 'b) -> 'a t -> 'b t
+val map_val : ('a -> 'b) -> t('a) -> t('b)
 (** [map_val f x] applies [f] directly if [x] is already forced,
    otherwise it behaves as [map f x].
 
@@ -118,7 +118,7 @@ val map_val : ('a -> 'b) -> 'a t -> 'b t
    The following definitions are for advanced uses only; they require
    familiarity with the lazy compilation scheme to be used appropriately. *)
 
-val from_fun : (unit -> 'a) -> 'a t
+val from_fun : (unit -> 'a) -> t('a)
 (** [from_fun f] is the same as [lazy (f ())] but slightly more efficient.
 
     It should only be used if the function [f] is already defined.
@@ -127,7 +127,7 @@ val from_fun : (unit -> 'a) -> 'a t
 
     @since 4.00 *)
 
-val force_val : 'a t -> 'a
+val force_val : t('a) -> 'a
 (** [force_val x] forces the suspension [x] and returns its result.  If [x]
     has already been forced, [force_val x] returns the same value again
     without recomputing it.

@@ -83,7 +83,7 @@ val backtrace_status: unit -> bool
     @since 3.11
 *)
 
-val register_printer: (exn -> string option) -> unit
+val register_printer: (exn -> option(string)) -> unit
 (** [Printexc.register_printer fn] registers [fn] as an exception
     printer.  The printer should return [None] or raise an exception
     if it does not know how to convert the passed exception, and [Some
@@ -102,7 +102,7 @@ val register_printer: (exn -> string option) -> unit
     @since 3.11.2
 *)
 
-val use_printers: exn -> string option
+val use_printers: exn -> option(string)
 (** [Printexc.use_printers e] returns [None] if there are no registered
     printers and [Some s] with [s] the resulting string otherwise.
     @since 4.09
@@ -147,7 +147,7 @@ type raw_backtrace_entry = private int
 
     @since 4.12 *)
 
-val raw_backtrace_entries : raw_backtrace -> raw_backtrace_entry array
+val raw_backtrace_entries : raw_backtrace -> array(raw_backtrace_entry)
 (** @since 4.12 *)
 
 val get_raw_backtrace: unit -> raw_backtrace
@@ -232,7 +232,7 @@ type backtrace_slot
     @since 4.02
 *)
 
-val backtrace_slots : raw_backtrace -> backtrace_slot array option
+val backtrace_slots : raw_backtrace -> option(array(backtrace_slot))
 (** Returns the slots of a raw backtrace, or [None] if none of them
     contain useful information.
 
@@ -250,7 +250,7 @@ val backtrace_slots : raw_backtrace -> backtrace_slot array option
 *)
 
 val backtrace_slots_of_raw_entry :
-  raw_backtrace_entry -> backtrace_slot array option
+  raw_backtrace_entry -> option(array(backtrace_slot))
 (** Returns the slots of a single raw backtrace entry, or [None] if this
     entry lacks debug information.
 
@@ -296,7 +296,7 @@ module Slot : sig
       @since 4.04
   *)
 
-  val location : t -> location option
+  val location : t -> option(location)
   (** [location slot] returns the location information of the slot,
       if available, and [None] otherwise.
 
@@ -308,7 +308,7 @@ module Slot : sig
       @since 4.02
   *)
 
-  val name : t -> string option
+  val name : t -> option(string)
   (** [name slot] returns the name of the function or definition
       enclosing the location referred to by the slot.
 
@@ -318,7 +318,7 @@ module Slot : sig
       @since 4.11
   *)
 
-  val format : int -> t -> string option
+  val format : int -> t -> option(string)
   (** [format pos slot] returns the string representation of [slot] as
       [raw_backtrace_to_string] would format it, assuming it is the
       [pos]-th element of the backtrace: the [0]-th element is
@@ -373,7 +373,7 @@ val convert_raw_backtrace_slot : raw_backtrace_slot -> backtrace_slot
 
 
 val get_raw_backtrace_next_slot :
-    raw_backtrace_slot -> raw_backtrace_slot option
+    raw_backtrace_slot -> option(raw_backtrace_slot)
 (** [get_raw_backtrace_next_slot slot] returns the next slot inlined, if any.
 
     Sample code to iterate over all frames (inlined and non-inlined):

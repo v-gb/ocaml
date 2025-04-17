@@ -19,18 +19,18 @@
 *)
 
 module type OrderedPolyType = sig
-  type 'a t
-  val compare : 'a t -> 'b t -> int
+  type t('a)
+  val compare : t('a) -> t('b) -> int
 end
 
 module MakeMinPoly(E: OrderedPolyType) =
   struct
 
-    type 'a elt = 'a E.t
+    type elt('a) = E.t('a)
 
     (* Our priority queues are implemented using the standard "min heap"
        data structure, a dynamic array representing a binary tree. *)
-    type 'a t = 'a E.t Dynarray.t
+    type t('a) = Dynarray.t(E.t('a))
 
     let create =
       Dynarray.create
@@ -160,53 +160,53 @@ module MakeMinPoly(E: OrderedPolyType) =
 
 module type MinPoly =
   sig
-    type 'a t
-    type 'a elt
-    val create: unit ->'a t
-    val length: 'a t -> int
-    val is_empty: 'a t -> bool
-    val add: 'a t -> 'a elt -> unit
-    val add_iter: 'a t -> (('a elt -> unit) -> 'x -> unit) -> 'x -> unit
-    val min_elt: 'a t -> 'a elt option
-    val get_min_elt: 'a t -> 'a elt
-    val pop_min: 'a t -> 'a elt option
-    val remove_min: 'a t -> unit
-    val clear: 'a t -> unit
-    val copy: 'a t -> 'a t
-    val of_array: 'a elt array -> 'a t
-    val of_list: 'a elt list -> 'a t
-    val of_iter: (('a elt -> unit) -> 'x -> unit) -> 'x -> 'a t
-    val iter_unordered: ('a elt -> unit) -> 'a t -> unit
-    val fold_unordered: ('acc -> 'a elt -> 'acc) -> 'acc -> 'a t -> 'acc
+    type t('a)
+    type elt('a)
+    val create: unit ->t('a)
+    val length: t('a) -> int
+    val is_empty: t('a) -> bool
+    val add: t('a) -> elt('a) -> unit
+    val add_iter: t('a) -> ((elt('a) -> unit) -> 'x -> unit) -> 'x -> unit
+    val min_elt: t('a) -> option(elt('a))
+    val get_min_elt: t('a) -> elt('a)
+    val pop_min: t('a) -> option(elt('a))
+    val remove_min: t('a) -> unit
+    val clear: t('a) -> unit
+    val copy: t('a) -> t('a)
+    val of_array: array(elt('a)) -> t('a)
+    val of_list: list(elt('a)) -> t('a)
+    val of_iter: ((elt('a) -> unit) -> 'x -> unit) -> 'x -> t('a)
+    val iter_unordered: (elt('a) -> unit) -> t('a) -> unit
+    val fold_unordered: ('acc -> elt('a) -> 'acc) -> 'acc -> t('a) -> 'acc
   end
 
 module type MaxPoly =
   sig
-    type 'a t
-    type 'a elt
-    val create: unit -> 'a t
-    val length: 'a t -> int
-    val is_empty: 'a t -> bool
-    val add: 'a t -> 'a elt -> unit
-    val add_iter: 'a t -> (('a elt -> unit) -> 'x -> unit) -> 'x -> unit
-    val max_elt: 'a t -> 'a elt option
-    val get_max_elt: 'a t -> 'a elt
-    val pop_max: 'a t -> 'a elt option
-    val remove_max: 'a t -> unit
-    val clear: 'a t -> unit
-    val copy: 'a t -> 'a t
-    val of_array: 'a elt array -> 'a t
-    val of_list: 'a elt list -> 'a t
-    val of_iter: (('a elt -> unit) -> 'x -> unit) -> 'x -> 'a t
-    val iter_unordered: ('a elt -> unit) -> 'a t -> unit
-    val fold_unordered: ('acc -> 'a elt -> 'acc) -> 'acc -> 'a t -> 'acc
+    type t('a)
+    type elt('a)
+    val create: unit -> t('a)
+    val length: t('a) -> int
+    val is_empty: t('a) -> bool
+    val add: t('a) -> elt('a) -> unit
+    val add_iter: t('a) -> ((elt('a) -> unit) -> 'x -> unit) -> 'x -> unit
+    val max_elt: t('a) -> option(elt('a))
+    val get_max_elt: t('a) -> elt('a)
+    val pop_max: t('a) -> option(elt('a))
+    val remove_max: t('a) -> unit
+    val clear: t('a) -> unit
+    val copy: t('a) -> t('a)
+    val of_array: array(elt('a)) -> t('a)
+    val of_list: list(elt('a)) -> t('a)
+    val of_iter: ((elt('a) -> unit) -> 'x -> unit) -> 'x -> t('a)
+    val iter_unordered: (elt('a) -> unit) -> t('a) -> unit
+    val fold_unordered: ('acc -> elt('a) -> 'acc) -> 'acc -> t('a) -> 'acc
 end
 
 module MakeMaxPoly(E: OrderedPolyType)
-  : MaxPoly with type 'a elt = 'a E.t =
+  : MaxPoly with type elt('a) = E.t('a) =
   struct
     include MakeMinPoly(struct
-      type 'a t = 'a E.t
+      type t('a) = E.t('a)
       let compare x y = E.compare y x
     end)
     (* renaming a few functions... *)
@@ -233,14 +233,14 @@ module type Min =
     val is_empty: t -> bool
     val add: t -> elt -> unit
     val add_iter: t -> ((elt -> unit) -> 'x -> unit) -> 'x -> unit
-    val min_elt: t -> elt option
+    val min_elt: t -> option(elt)
     val get_min_elt: t -> elt
-    val pop_min: t -> elt option
+    val pop_min: t -> option(elt)
     val remove_min: t -> unit
     val clear: t -> unit
     val copy: t -> t
-    val of_array: elt array -> t
-    val of_list: elt list -> t
+    val of_array: array(elt) -> t
+    val of_list: list(elt) -> t
     val of_iter: ((elt -> unit) -> 'x -> unit) -> 'x -> t
     val iter_unordered: (elt -> unit) -> t -> unit
     val fold_unordered: ('acc -> elt -> 'acc) -> 'acc -> t -> 'acc
@@ -248,9 +248,9 @@ module type Min =
 
 module MakeMin(E: OrderedType) =
   struct
-    include MakeMinPoly(struct type 'a t = E.t
+    include MakeMinPoly(struct type t('a) = E.t
                                let compare = E.compare end)
-    type t = E.t Dynarray.t
+    type t = Dynarray.t(E.t)
   end
 
 module type Max =
@@ -262,14 +262,14 @@ module type Max =
     val is_empty: t -> bool
     val add: t -> elt -> unit
     val add_iter: t -> ((elt -> unit) -> 'x -> unit) -> 'x -> unit
-    val max_elt: t -> elt option
+    val max_elt: t -> option(elt)
     val get_max_elt: t -> elt
-    val pop_max: t -> elt option
+    val pop_max: t -> option(elt)
     val remove_max: t -> unit
     val clear: t -> unit
     val copy: t -> t
-    val of_array: elt array -> t
-    val of_list: elt list -> t
+    val of_array: array(elt) -> t
+    val of_list: list(elt) -> t
     val of_iter: ((elt -> unit) -> 'x -> unit) -> 'x -> t
     val iter_unordered: (elt -> unit) -> t -> unit
     val fold_unordered: ('acc -> elt -> 'acc) -> 'acc -> t -> 'acc
@@ -277,9 +277,9 @@ module type Max =
 
 module MakeMax(E: OrderedType) =
   struct
-    include MakeMinPoly(struct type 'a t = E.t
+    include MakeMinPoly(struct type t('a) = E.t
                                let compare x y = E.compare y x end)
-    type t = E.t Dynarray.t
+    type t = Dynarray.t(E.t)
     let max_elt = min_elt
     let get_max_elt = get_min_elt
     let pop_max = pop_min

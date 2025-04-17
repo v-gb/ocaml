@@ -15,9 +15,9 @@
 
 (** Weak array operations *)
 
-type !'a t
+type t(!'a)
 
-external create : int -> 'a t = "caml_weak_create"
+external create : int -> t('a) = "caml_weak_create"
 
 (** number of additional values in a weak pointer
  *    - Link
@@ -36,30 +36,30 @@ let raise_if_invalid_offset e o msg =
   if not (0 <= o && o < length e) then
     invalid_arg(msg)
 
-external set' : 'a t -> int -> 'a -> unit = "caml_ephe_set_key"
-external unset : 'a t -> int -> unit = "caml_ephe_unset_key"
+external set' : t('a) -> int -> 'a -> unit = "caml_ephe_set_key"
+external unset : t('a) -> int -> unit = "caml_ephe_unset_key"
 let set e o x =
   raise_if_invalid_offset e o "Weak.set";
   match x with
   | None -> unset e o
   | Some x -> set' e o x
 
-external get : 'a t -> int -> 'a option = "caml_weak_get"
+external get : t('a) -> int -> option('a) = "caml_weak_get"
 let get e o =
   raise_if_invalid_offset e o "Weak.get";
   get e o
 
-external get_copy : 'a t -> int -> 'a option = "caml_weak_get_copy"
+external get_copy : t('a) -> int -> option('a) = "caml_weak_get_copy"
 let get_copy e o =
   raise_if_invalid_offset e o "Weak.get_copy";
   get_copy e o
 
-external check : 'a t -> int -> bool = "caml_weak_check"
+external check : t('a) -> int -> bool = "caml_weak_check"
 let check e o =
   raise_if_invalid_offset e o "Weak.check";
   check e o
 
-external blit : 'a t -> int -> 'a t -> int -> int -> unit = "caml_weak_blit"
+external blit : t('a) -> int -> t('a) -> int -> int -> unit = "caml_weak_blit"
 
 (* blit: src srcoff dst dstoff len *)
 let blit e1 o1 e2 o2 l =
@@ -89,8 +89,8 @@ module type S = sig
   val add : t -> data -> unit
   val remove : t -> data -> unit
   val find : t -> data -> data
-  val find_opt : t -> data -> data option
-  val find_all : t -> data -> data list
+  val find_opt : t -> data -> option(data)
+  val find_all : t -> data -> list(data)
   val mem : t -> data -> bool
   val iter : (data -> unit) -> t -> unit
   val fold : (data -> 'acc -> 'acc) -> t -> 'acc -> 'acc
@@ -100,15 +100,15 @@ end
 
 module Make (H : Hashtbl.HashedType) : (S with type data = H.t) = struct
 
-  type 'a weak_t = 'a t
+  type weak_t('a) = t('a)
   let weak_create = create
   let emptybucket = weak_create 0
 
   type data = H.t
 
   type t = {
-    mutable table : data weak_t array;
-    mutable hashes : int array array;
+    mutable table : array(weak_t(data));
+    mutable hashes : array(array(int));
     mutable limit : int;               (* bucket size limit *)
     mutable oversize : int;            (* number of oversize buckets *)
     mutable rover : int;               (* for internal bookkeeping *)

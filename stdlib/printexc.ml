@@ -101,7 +101,7 @@ let catch fct arg =
 
 type raw_backtrace_slot
 type raw_backtrace_entry = private int
-type raw_backtrace = raw_backtrace_entry array
+type raw_backtrace = array(raw_backtrace_entry)
 
 let raw_backtrace_entries bt = bt
 
@@ -132,7 +132,7 @@ external convert_raw_backtrace_slot:
   raw_backtrace_slot -> backtrace_slot = "caml_convert_raw_backtrace_slot"
 
 external convert_raw_backtrace:
-  raw_backtrace -> backtrace_slot array = "caml_convert_raw_backtrace"
+  raw_backtrace -> array(backtrace_slot) = "caml_convert_raw_backtrace"
 
 let convert_raw_backtrace bt =
   try Some (convert_raw_backtrace bt)
@@ -270,7 +270,7 @@ external get_raw_backtrace_slot :
   raw_backtrace -> int -> raw_backtrace_slot = "caml_raw_backtrace_slot"
 
 external get_raw_backtrace_next_slot :
-  raw_backtrace_slot -> raw_backtrace_slot option
+  raw_backtrace_slot -> option(raw_backtrace_slot)
   = "caml_raw_backtrace_next_slot"
 
 (* confusingly named:

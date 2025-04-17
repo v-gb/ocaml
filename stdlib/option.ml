@@ -13,7 +13,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type 'a t = 'a option = None | Some of 'a
+type t('a) = option('a) = None | Some of 'a
 
 let none = None
 let some v = Some v

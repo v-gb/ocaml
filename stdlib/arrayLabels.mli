@@ -27,13 +27,13 @@
     {!StdLabels} module.
 *)
 
-type 'a t = 'a array
+type t('a) = array('a)
 (** An alias for the type of arrays. *)
 
-external length : 'a array -> int = "%array_length"
+external length : array('a) -> int = "%array_length"
 (** Return the length (number of elements) of the given array. *)
 
-external get : 'a array -> int -> 'a = "%array_safe_get"
+external get : array('a) -> int -> 'a = "%array_safe_get"
 (** [get a n] returns the element number [n] of array [a].
    The first element has number 0.
    The last element has number [length a - 1].
@@ -42,7 +42,7 @@ external get : 'a array -> int -> 'a = "%array_safe_get"
    @raise Invalid_argument
    if [n] is outside the range 0 to [(length a - 1)]. *)
 
-external set : 'a array -> int -> 'a -> unit = "%array_safe_set"
+external set : array('a) -> int -> 'a -> unit = "%array_safe_set"
 (** [set a n x] modifies array [a] in place, replacing
    element number [n] with [x].
    You can also write [a.(n) <- x] instead of [set a n x].
@@ -50,7 +50,7 @@ external set : 'a array -> int -> 'a -> unit = "%array_safe_set"
    @raise Invalid_argument
    if [n] is outside the range 0 to [length a - 1]. *)
 
-external make : int -> 'a -> 'a array = "caml_array_make"
+external make : int -> 'a -> array('a) = "caml_array_make"
 (** [make n x] returns a fresh array of length [n],
    initialized with [x].
    All the elements of this new array are initially
@@ -63,12 +63,12 @@ external make : int -> 'a -> 'a array = "caml_array_make"
    If the value of [x] is a floating-point number, then the maximum
    size is only [Sys.max_array_length / 2].*)
 
-external create_float: int -> float array = "caml_array_create_float"
+external create_float: int -> array(float) = "caml_array_create_float"
 (** [create_float n] returns a fresh float array of length [n],
     with uninitialized data.
     @since 4.03 *)
 
-val init : int -> f:(int -> 'a) -> 'a array
+val init : int -> f:(int -> 'a) -> array('a)
 (** [init n ~f] returns a fresh array of length [n],
    with element number [i] initialized to the result of [f i].
    In other terms, [init n ~f] tabulates the results of [f]
@@ -78,7 +78,7 @@ val init : int -> f:(int -> 'a) -> 'a array
    If the return type of [f] is [float], then the maximum
    size is only [Sys.max_array_length / 2].*)
 
-val make_matrix : dimx:int -> dimy:int -> 'a -> 'a array array
+val make_matrix : dimx:int -> dimy:int -> 'a -> array(array('a))
 (** [make_matrix ~dimx ~dimy e] returns a two-dimensional array
    (an array of arrays) with first dimension [dimx] and
    second dimension [dimy]. All the elements of this new matrix
@@ -91,7 +91,7 @@ val make_matrix : dimx:int -> dimy:int -> 'a -> 'a array array
    If the value of [e] is a floating-point number, then the maximum
    size is only [Sys.max_array_length / 2]. *)
 
-val init_matrix : dimx:int -> dimy:int -> f:(int -> int -> 'a) -> 'a array array
+val init_matrix : dimx:int -> dimy:int -> f:(int -> int -> 'a) -> array(array('a))
 (** [init_matrix ~dimx ~dimy ~f] returns a two-dimensional array
    (an array of arrays)
    with first dimension [dimx] and second dimension [dimy],
@@ -106,16 +106,16 @@ val init_matrix : dimx:int -> dimy:int -> f:(int -> int -> 'a) -> 'a array array
 
    @since 5.2 *)
 
-val append : 'a array -> 'a array -> 'a array
+val append : array('a) -> array('a) -> array('a)
 (** [append v1 v2] returns a fresh array containing the
    concatenation of the arrays [v1] and [v2].
    @raise Invalid_argument if
    [length v1 + length v2 > Sys.max_array_length]. *)
 
-val concat : 'a array list -> 'a array
+val concat : list(array('a)) -> array('a)
 (** Same as {!append}, but concatenates a list of arrays. *)
 
-val sub : 'a array -> pos:int -> len:int -> 'a array
+val sub : array('a) -> pos:int -> len:int -> array('a)
 (** [sub a ~pos ~len] returns a fresh array of length [len],
    containing the elements number [pos] to [pos + len - 1]
    of array [a].
@@ -124,11 +124,11 @@ val sub : 'a array -> pos:int -> len:int -> 'a array
    designate a valid subarray of [a]; that is, if
    [pos < 0], or [len < 0], or [pos + len > length a]. *)
 
-val copy : 'a array -> 'a array
+val copy : array('a) -> array('a)
 (** [copy a] returns a copy of [a], that is, a fresh array
    containing the same elements as [a]. *)
 
-val fill : 'a array -> pos:int -> len:int -> 'a -> unit
+val fill : array('a) -> pos:int -> len:int -> 'a -> unit
 (** [fill a ~pos ~len x] modifies the array [a] in place,
    storing [x] in elements number [pos] to [pos + len - 1].
 
@@ -136,7 +136,7 @@ val fill : 'a array -> pos:int -> len:int -> 'a -> unit
    designate a valid subarray of [a]. *)
 
 val blit :
-  src:'a array -> src_pos:int -> dst:'a array -> dst_pos:int -> len:int ->
+  src:array('a) -> src_pos:int -> dst:array('a) -> dst_pos:int -> len:int ->
     unit
 (** [blit ~src ~src_pos ~dst ~dst_pos ~len] copies [len] elements
    from array [src], starting at element number [src_pos], to array [dst],
@@ -148,10 +148,10 @@ val blit :
    designate a valid subarray of [src], or if [dst_pos] and [len] do not
    designate a valid subarray of [dst]. *)
 
-val to_list : 'a array -> 'a list
+val to_list : array('a) -> list('a)
 (** [to_list a] returns the list of all the elements of [a]. *)
 
-val of_list : 'a list -> 'a array
+val of_list : list('a) -> array('a)
 (** [of_list l] returns a fresh array containing the elements
    of [l].
 
@@ -160,14 +160,14 @@ val of_list : 'a list -> 'a array
 
 (** {1:comparison Comparison} *)
 
-val equal : eq:('a -> 'a -> bool) -> 'a array -> 'a array -> bool
+val equal : eq:('a -> 'a -> bool) -> array('a) -> array('a) -> bool
 (** [equal eq a b] is [true] if and only if [a] and [b] have the
     same length [n] and for all [i] in \[[0];[n-1]\], [eq a.(i) b.(i)]
     is [true].
 
     @since 5.4 *)
 
-val compare : cmp:('a -> 'a -> int) -> 'a array -> 'a array -> int
+val compare : cmp:('a -> 'a -> int) -> array('a) -> array('a) -> int
 (** [compare cmp a b] compares [a] and [b] according to the shortlex order,
     that is, shorter arrays are smaller and equal-sized arrays are compared
     in lexicographic order using [cmp] to compare elements.
@@ -176,48 +176,48 @@ val compare : cmp:('a -> 'a -> int) -> 'a array -> 'a array -> int
 
 (** {1 Iterators} *)
 
-val iter : f:('a -> unit) -> 'a array -> unit
+val iter : f:('a -> unit) -> array('a) -> unit
 (** [iter ~f a] applies function [f] in turn to all
    the elements of [a].  It is equivalent to
    [f a.(0); f a.(1); ...; f a.(length a - 1); ()]. *)
 
-val iteri : f:(int -> 'a -> unit) -> 'a array -> unit
+val iteri : f:(int -> 'a -> unit) -> array('a) -> unit
 (** Same as {!iter}, but the
    function is applied to the index of the element as first argument,
    and the element itself as second argument. *)
 
-val map : f:('a -> 'b) -> 'a array -> 'b array
+val map : f:('a -> 'b) -> array('a) -> array('b)
 (** [map ~f a] applies function [f] to all the elements of [a],
    and builds an array with the results returned by [f]:
    [[| f a.(0); f a.(1); ...; f a.(length a - 1) |]]. *)
 
-val map_inplace : f:('a -> 'a) -> 'a array -> unit
+val map_inplace : f:('a -> 'a) -> array('a) -> unit
 (** [map_inplace ~f a] applies function [f] to all elements of [a],
     and updates their values in place.
     @since 5.1 *)
 
-val mapi : f:(int -> 'a -> 'b) -> 'a array -> 'b array
+val mapi : f:(int -> 'a -> 'b) -> array('a) -> array('b)
 (** Same as {!map}, but the
    function is applied to the index of the element as first argument,
    and the element itself as second argument. *)
 
-val mapi_inplace : f:(int -> 'a -> 'a) -> 'a array -> unit
+val mapi_inplace : f:(int -> 'a -> 'a) -> array('a) -> unit
 (** Same as {!map_inplace}, but the function is applied to the index of the
     element as first argument, and the element itself as second argument.
     @since 5.1 *)
 
-val fold_left : f:('acc -> 'a -> 'acc) -> init:'acc -> 'a array -> 'acc
+val fold_left : f:('acc -> 'a -> 'acc) -> init:'acc -> array('a) -> 'acc
 (** [fold_left ~f ~init a] computes
    [f (... (f (f init a.(0)) a.(1)) ...) a.(n-1)],
    where [n] is the length of the array [a]. *)
 
 val fold_left_map :
-  f:('acc -> 'a -> 'acc * 'b) -> init:'acc -> 'a array -> 'acc * 'b array
+  f:('acc -> 'a -> 'acc * 'b) -> init:'acc -> array('a) -> 'acc * array('b)
 (** [fold_left_map] is a combination of {!fold_left} and {!map} that threads an
     accumulator through calls to [f].
     @since 4.13 *)
 
-val fold_right : f:('a -> 'acc -> 'acc) -> 'a array -> init:'acc -> 'acc
+val fold_right : f:('a -> 'acc -> 'acc) -> array('a) -> init:'acc -> 'acc
 (** [fold_right ~f a ~init] computes
    [f a.(0) (f a.(1) ( ... (f a.(n-1) init) ...))],
    where [n] is the length of the array [a]. *)
@@ -226,14 +226,14 @@ val fold_right : f:('a -> 'acc -> 'acc) -> 'a array -> init:'acc -> 'acc
 (** {1 Iterators on two arrays} *)
 
 
-val iter2 : f:('a -> 'b -> unit) -> 'a array -> 'b array -> unit
+val iter2 : f:('a -> 'b -> unit) -> array('a) -> array('b) -> unit
 (** [iter2 ~f a b] applies function [f] to all the elements of [a]
    and [b].
    @raise Invalid_argument if the arrays are not the same size.
    @since 4.03 (4.05 in ArrayLabels)
    *)
 
-val map2 : f:('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
+val map2 : f:('a -> 'b -> 'c) -> array('a) -> array('b) -> array('c)
 (** [map2 ~f a b] applies function [f] to all the elements of [a]
    and [b], and builds an array with the results returned by [f]:
    [[| f a.(0) b.(0); ...; f a.(length a - 1) b.(length b - 1)|]].
@@ -243,47 +243,47 @@ val map2 : f:('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
 
 (** {1 Array scanning} *)
 
-val for_all : f:('a -> bool) -> 'a array -> bool
+val for_all : f:('a -> bool) -> array('a) -> bool
 (** [for_all ~f [|a1; ...; an|]] checks if all elements
    of the array satisfy the predicate [f]. That is, it returns
    [(f a1) && (f a2) && ... && (f an)].
    @since 4.03 *)
 
-val exists : f:('a -> bool) -> 'a array -> bool
+val exists : f:('a -> bool) -> array('a) -> bool
 (** [exists ~f [|a1; ...; an|]] checks if at least one element of
     the array satisfies the predicate [f]. That is, it returns
     [(f a1) || (f a2) || ... || (f an)].
     @since 4.03 *)
 
-val for_all2 : f:('a -> 'b -> bool) -> 'a array -> 'b array -> bool
+val for_all2 : f:('a -> 'b -> bool) -> array('a) -> array('b) -> bool
 (** Same as {!for_all}, but for a two-argument predicate.
    @raise Invalid_argument if the two arrays have different lengths.
    @since 4.11 *)
 
-val exists2 : f:('a -> 'b -> bool) -> 'a array -> 'b array -> bool
+val exists2 : f:('a -> 'b -> bool) -> array('a) -> array('b) -> bool
 (** Same as {!exists}, but for a two-argument predicate.
    @raise Invalid_argument if the two arrays have different lengths.
    @since 4.11 *)
 
-val mem : 'a -> set:'a array -> bool
+val mem : 'a -> set:array('a) -> bool
 (** [mem a ~set] is true if and only if [a] is structurally equal
     to an element of [set] (i.e. there is an [x] in [set] such that
     [compare a x = 0]).
     @since 4.03 *)
 
-val memq : 'a -> set:'a array -> bool
+val memq : 'a -> set:array('a) -> bool
 (** Same as {!mem}, but uses physical equality
    instead of structural equality to compare array elements.
    @since 4.03 *)
 
-val find_opt : f:('a -> bool) -> 'a array -> 'a option
+val find_opt : f:('a -> bool) -> array('a) -> option('a)
 (** [find_opt ~f a] returns the first element of the array [a] that satisfies
     the predicate [f], or [None] if there is no value that satisfies [f] in the
     array [a].
 
     @since 4.13 *)
 
-val find_index : f:('a -> bool) -> 'a array -> int option
+val find_index : f:('a -> bool) -> array('a) -> option(int)
 (** [find_index ~f a] returns [Some i], where [i] is the index of the first
     element of the array [a] that satisfies [f x], if there is such an
     element.
@@ -292,13 +292,13 @@ val find_index : f:('a -> bool) -> 'a array -> int option
 
     @since 5.1 *)
 
-val find_map : f:('a -> 'b option) -> 'a array -> 'b option
+val find_map : f:('a -> option('b)) -> array('a) -> option('b)
 (** [find_map ~f a] applies [f] to the elements of [a] in order, and returns the
     first result of the form [Some v], or [None] if none exist.
 
     @since 4.13 *)
 
-val find_mapi : f:(int -> 'a -> 'b option) -> 'a array -> 'b option
+val find_mapi : f:(int -> 'a -> option('b)) -> array('a) -> option('b)
 (** Same as [find_map], but the predicate is applied to the index of
    the element as first argument (counting from 0), and the element
    itself as second argument.
@@ -307,12 +307,12 @@ val find_mapi : f:(int -> 'a -> 'b option) -> 'a array -> 'b option
 
 (** {1 Arrays of pairs} *)
 
-val split : ('a * 'b) array -> 'a array * 'b array
+val split : array('a * 'b) -> array('a) * array('b)
 (** [split [|(a1,b1); ...; (an,bn)|]] is [([|a1; ...; an|], [|b1; ...; bn|])].
 
     @since 4.13 *)
 
-val combine : 'a array -> 'b array -> ('a * 'b) array
+val combine : array('a) -> array('b) -> array('a * 'b)
 (** [combine [|a1; ...; an|] [|b1; ...; bn|]] is [[|(a1,b1); ...; (an,bn)|]].
     Raise [Invalid_argument] if the two arrays have different lengths.
 
@@ -320,7 +320,7 @@ val combine : 'a array -> 'b array -> ('a * 'b) array
 
 (** {1:sorting_and_shuffling Sorting and shuffling} *)
 
-val sort : cmp:('a -> 'a -> int) -> 'a array -> unit
+val sort : cmp:('a -> 'a -> int) -> array('a) -> unit
 (** Sort an array in increasing order according to a comparison
    function.  The comparison function must return 0 if its arguments
    compare as equal, a positive integer if the first is greater,
@@ -345,7 +345,7 @@ val sort : cmp:('a -> 'a -> int) -> 'a array -> unit
 -   [cmp a.(i) a.(j)] >= 0 if i >= j
 *)
 
-val stable_sort : cmp:('a -> 'a -> int) -> 'a array -> unit
+val stable_sort : cmp:('a -> 'a -> int) -> array('a) -> unit
 (** Same as {!sort}, but the sorting algorithm is stable (i.e.
    elements that compare equal are kept in their original order) and
    not guaranteed to run in constant heap space.
@@ -355,12 +355,12 @@ val stable_sort : cmp:('a -> 'a -> int) -> 'a array -> unit
    than the current implementation of {!sort}.
 *)
 
-val fast_sort : cmp:('a -> 'a -> int) -> 'a array -> unit
+val fast_sort : cmp:('a -> 'a -> int) -> array('a) -> unit
 (** Same as {!sort} or {!stable_sort}, whichever is
     faster on typical input. *)
 
 val shuffle :
-  rand: (* thwart tools/sync_stdlib_docs *) (int -> int) -> 'a array -> unit
+  rand: (* thwart tools/sync_stdlib_docs *) (int -> int) -> array('a) -> unit
 (** [shuffle ~rand a] randomly permutes [a]'s element using [rand] for
     randomness. The distribution of permutations is uniform.
 
@@ -373,18 +373,18 @@ val shuffle :
 
 (** {1 Arrays and Sequences} *)
 
-val to_seq : 'a array -> 'a Seq.t
+val to_seq : array('a) -> Seq.t('a)
 (** Iterate on the array, in increasing order. Modifications of the
     array during iteration will be reflected in the sequence.
     @since 4.07 *)
 
-val to_seqi : 'a array -> (int * 'a) Seq.t
+val to_seqi : array('a) -> Seq.t(int * 'a)
 (** Iterate on the array, in increasing order, yielding indices along elements.
     Modifications of the array during iteration will be reflected in the
     sequence.
     @since 4.07 *)
 
-val of_seq : 'a Seq.t -> 'a array
+val of_seq : Seq.t('a) -> array('a)
 (** Create an array from the generator
     @since 4.07 *)
 
@@ -466,8 +466,8 @@ let () = Domain.join d1; Domain.join d2
 
 (* The following is for system use only. Do not call directly. *)
 
-external unsafe_get : 'a array -> int -> 'a = "%array_unsafe_get"
-external unsafe_set : 'a array -> int -> 'a -> unit = "%array_unsafe_set"
+external unsafe_get : array('a) -> int -> 'a = "%array_unsafe_get"
+external unsafe_set : array('a) -> int -> 'a -> unit = "%array_unsafe_set"
 
 module Floatarray : sig
   external create : int -> floatarray = "caml_floatarray_create"

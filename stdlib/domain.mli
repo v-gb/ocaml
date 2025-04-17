@@ -26,18 +26,18 @@
     "The Domain interface may change in incompatible ways in the future."
 ]
 
-type !'a t
+type t(!'a)
 (** A domain of type ['a t] runs independently, eventually producing a
     result of type 'a, or an exception *)
 
-val spawn : (unit -> 'a) -> 'a t
+val spawn : (unit -> 'a) -> t('a)
 (** [spawn f] creates a new domain that runs in parallel with the
     current domain.
 
     @raise Failure if the program has insufficient resources to create another
     domain. *)
 
-val join : 'a t -> 'a
+val join : t('a) -> 'a
 (** [join d] blocks until domain [d] runs to completion. If [d] results in a
     value, then that is returned by [join d]. If [d] raises an uncaught
     exception, then that is re-raised by [join d]. *)
@@ -45,7 +45,7 @@ val join : 'a t -> 'a
 type id = private int
 (** Domains have unique integer identifiers *)
 
-val get_id : 'a t -> id
+val get_id : t('a) -> id
 (** [get_id d] returns the identifier of the domain [d] *)
 
 val self : unit -> id
@@ -106,10 +106,10 @@ val self_index : unit -> int
 module DLS : sig
 (** Domain-local Storage *)
 
-    type 'a key
+    type key('a)
     (** Type of a DLS key *)
 
-    val new_key : ?split_from_parent:('a -> 'a) -> (unit -> 'a) -> 'a key
+    val new_key : ?split_from_parent:('a -> 'a) -> (unit -> 'a) -> key('a)
     (** [new_key f] returns a new key bound to initialiser [f] for accessing
         domain-local variables.
 
@@ -152,12 +152,12 @@ module DLS : sig
         explicit synchronization to avoid data races.
     *)
 
-    val get : 'a key -> 'a
+    val get : key('a) -> 'a
     (** [get k] returns [v] if a value [v] is associated to the key [k] on
         the calling domain's domain-local state. Sets [k]'s value with its
         initialiser and returns it otherwise. *)
 
-    val set : 'a key -> 'a -> unit
+    val set : key('a) -> 'a -> unit
     (** [set k v] updates the calling domain's domain-local state to associate
         the key [k] with value [v]. It overwrites any previous values associated
         to [k], which cannot be restored later. *)

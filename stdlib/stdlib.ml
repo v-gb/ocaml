@@ -234,16 +234,16 @@ external snd : 'a * 'b -> 'b = "%field1"
 
 (* References *)
 
-type 'a ref = { mutable contents : 'a }
-external ref : 'a -> 'a ref = "%makemutable"
-external ( ! ) : 'a ref -> 'a = "%field0"
-external ( := ) : 'a ref -> 'a -> unit = "%setfield0"
-external incr : int ref -> unit = "%incr"
-external decr : int ref -> unit = "%decr"
+type ref('a) = { mutable contents : 'a }
+external ref : 'a -> ref('a) = "%makemutable"
+external ( ! ) : ref('a) -> 'a = "%field0"
+external ( := ) : ref('a) -> 'a -> unit = "%setfield0"
+external incr : ref(int) -> unit = "%incr"
+external decr : ref(int) -> unit = "%decr"
 
 (* Result type *)
 
-type ('a,'b) result = Ok of 'a | Error of 'b
+type result('a,'b) = Ok of 'a | Error of 'b
 
 (* String conversion functions *)
 
@@ -322,7 +322,7 @@ type open_flag =
   | Open_creat | Open_trunc | Open_excl
   | Open_binary | Open_text | Open_nonblock
 
-external open_desc : string -> open_flag list -> int -> int = "caml_sys_open"
+external open_desc : string -> list(open_flag) -> int -> int = "caml_sys_open"
 
 external set_out_channel_name: out_channel -> string -> unit =
   "caml_ml_set_channel_name"
@@ -340,7 +340,7 @@ let open_out_bin name =
 
 external flush : out_channel -> unit = "caml_ml_flush"
 
-external out_channels_list : unit -> out_channel list
+external out_channels_list : unit -> list(out_channel)
                            = "caml_ml_out_channels_list"
 
 let flush_all () =
@@ -381,7 +381,7 @@ let output_substring oc s ofs len =
 external output_byte : out_channel -> int -> unit = "caml_ml_output_char"
 external output_binary_int : out_channel -> int -> unit = "caml_ml_output_int"
 
-external marshal_to_channel : out_channel -> 'a -> unit list -> unit
+external marshal_to_channel : out_channel -> 'a -> list(unit) -> unit
      = "caml_output_value"
 let output_value chan v = marshal_to_channel chan v []
 
@@ -526,20 +526,20 @@ module LargeFile =
 
 (* Formats *)
 
-type ('a, 'b, 'c, 'd, 'e, 'f) format6
-   = ('a, 'b, 'c, 'd, 'e, 'f) CamlinternalFormatBasics.format6
-   = Format of ('a, 'b, 'c, 'd, 'e, 'f) CamlinternalFormatBasics.fmt
+type format6('a, 'b, 'c, 'd, 'e, 'f)
+   = CamlinternalFormatBasics.format6('a, 'b, 'c, 'd, 'e, 'f)
+   = Format of CamlinternalFormatBasics.fmt('a, 'b, 'c, 'd, 'e, 'f)
                * string
 
-type ('a, 'b, 'c, 'd) format4 = ('a, 'b, 'c, 'c, 'c, 'd) format6
+type format4('a, 'b, 'c, 'd) = format6('a, 'b, 'c, 'c, 'c, 'd)
 
-type ('a, 'b, 'c) format = ('a, 'b, 'c, 'c) format4
+type format('a, 'b, 'c) = format4('a, 'b, 'c, 'c)
 
 let string_of_format (Format (_fmt, str)) = str
 
 external format_of_string :
- ('a, 'b, 'c, 'd, 'e, 'f) format6 ->
- ('a, 'b, 'c, 'd, 'e, 'f) format6 = "%identity"
+ format6('a, 'b, 'c, 'd, 'e, 'f) ->
+ format6('a, 'b, 'c, 'd, 'e, 'f) = "%identity"
 
 let ( ^^ ) (Format (fmt1, str1)) (Format (fmt2, str2)) =
   Format (CamlinternalFormatBasics.concat_fmt fmt1 fmt2,
@@ -550,10 +550,10 @@ let ( ^^ ) (Format (fmt1, str1)) (Format (fmt2, str2)) =
 external sys_exit : int -> 'a = "caml_sys_exit"
 
 (* for at_exit *)
-type 'a atomic_t
-external atomic_make : 'a -> 'a atomic_t = "%makemutable"
-external atomic_get : 'a atomic_t -> 'a = "%atomic_load"
-external atomic_compare_and_set : 'a atomic_t -> 'a -> 'a -> bool
+type atomic_t('a)
+external atomic_make : 'a -> atomic_t('a) = "%makemutable"
+external atomic_get : atomic_t('a) -> 'a = "%atomic_load"
+external atomic_compare_and_set : atomic_t('a) -> 'a -> 'a -> bool
   = "%atomic_cas"
 
 let exit_function = atomic_make flush_all

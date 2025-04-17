@@ -16,14 +16,14 @@
 
 exception Empty
 
-type 'a cell =
+type cell('a) =
   | Nil
-  | Cons of { content: 'a; mutable next: 'a cell }
+  | Cons of { content: 'a; mutable next: cell('a) }
 
-type 'a t = {
+type t('a) = {
   mutable length: int;
-  mutable first: 'a cell;
-  mutable last: 'a cell
+  mutable first: cell('a);
+  mutable last: cell('a)
 }
 
 let create () = {

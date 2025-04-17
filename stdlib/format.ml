@@ -86,7 +86,7 @@ type pp_token =
 
 and stag = ..
 
-and tbox = Pp_tbox of int list ref  (* Tabulation box *)
+and tbox = Pp_tbox of ref(list(int))  (* Tabulation box *)
 
 type tag = string
 type stag += String_tag of tag
@@ -112,7 +112,7 @@ type pp_queue_elem = {
 
 
 (* The pretty-printer queue definition. *)
-type pp_queue = pp_queue_elem Queue.t
+type pp_queue = Queue.t(pp_queue_elem)
 
 (* The pretty-printer scanning stack. *)
 
@@ -136,13 +136,13 @@ type pp_format_elem = { box_type : box_type; width : int }
    machinery. *)
 type formatter = {
   (* The pretty-printer scanning stack. *)
-  pp_scan_stack : pp_scan_elem Stack.t;
+  pp_scan_stack : Stack.t(pp_scan_elem);
   (* The pretty-printer formatting stack. *)
-  pp_format_stack : pp_format_elem Stack.t;
-  pp_tbox_stack : tbox Stack.t;
+  pp_format_stack : Stack.t(pp_format_elem);
+  pp_tbox_stack : Stack.t(tbox);
   (* The pretty-printer semantics tag stack. *)
-  pp_tag_stack : stag Stack.t;
-  pp_mark_stack : stag Stack.t;
+  pp_tag_stack : Stack.t(stag);
+  pp_mark_stack : Stack.t(stag);
   (* Value of right margin. *)
   mutable pp_margin : int;
   (* Minimal space left before margin, when opening a box. *)
@@ -1178,7 +1178,7 @@ type symbolic_output_item =
   | Output_indent of int
 
 type symbolic_output_buffer = {
-  mutable symbolic_output_contents : symbolic_output_item list;
+  mutable symbolic_output_contents : list(symbolic_output_item);
 }
 
 let make_symbolic_output_buffer () =

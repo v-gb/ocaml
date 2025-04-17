@@ -103,7 +103,7 @@ external finalise_last : (unit -> unit) -> 'a -> unit =
 external finalise_release : unit -> unit = "caml_final_release"
 
 
-type alarm = bool Atomic.t
+type alarm = Atomic.t(bool)
 type alarm_rec = {active : alarm; f : unit -> unit}
 
 let rec call_alarm arec =
@@ -133,10 +133,10 @@ module Memprof =
         source : allocation_source;
         callstack : Printexc.raw_backtrace }
 
-    type ('minor, 'major) tracker = {
-      alloc_minor: allocation -> 'minor option;
-      alloc_major: allocation -> 'major option;
-      promote: 'minor -> 'major option;
+    type tracker('minor, 'major) = {
+      alloc_minor: allocation -> option('minor);
+      alloc_major: allocation -> option('major);
+      promote: 'minor -> option('major);
       dealloc_minor: 'minor -> unit;
       dealloc_major: 'major -> unit;
     }
@@ -150,7 +150,7 @@ module Memprof =
     }
 
     external c_start :
-      float -> int -> ('minor, 'major) tracker -> t
+      float -> int -> tracker('minor, 'major) -> t
       = "caml_memprof_start"
 
     let start

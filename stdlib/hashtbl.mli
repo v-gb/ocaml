@@ -59,11 +59,11 @@
 (** {1 Generic interface} *)
 
 
-type (!'a, !'b) t
+type t(!'a, !'b)
 (** The type of hash tables from type ['a] to type ['b]. *)
 
 val create : ?random: (* thwart tools/sync_stdlib_docs *) bool ->
-             int -> ('a, 'b) t
+             int -> t('a, 'b)
 (** [Hashtbl.create n] creates a new, empty hash table, with initial
    size greater or equal to the suggested size [n].  For best results,
    [n] should be on the order of the expected number of elements that
@@ -102,19 +102,19 @@ val create : ?random: (* thwart tools/sync_stdlib_docs *) bool ->
    @before 4.00 the [~random] parameter was not present and all
    hash tables were created in non-randomized mode. *)
 
-val clear : ('a, 'b) t -> unit
+val clear : t('a, 'b) -> unit
 (** Empty a hash table. Use [reset] instead of [clear] to shrink the
     size of the bucket table to its initial size. *)
 
-val reset : ('a, 'b) t -> unit
+val reset : t('a, 'b) -> unit
 (** Empty a hash table and shrink the size of the bucket table
     to its initial size.
     @since 4.00 *)
 
-val copy : ('a, 'b) t -> ('a, 'b) t
+val copy : t('a, 'b) -> t('a, 'b)
 (** Return a copy of the given hashtable. *)
 
-val add : ('a, 'b) t -> 'a -> 'b -> unit
+val add : t('a, 'b) -> 'a -> 'b -> unit
 (** [Hashtbl.add tbl key data] adds a binding of [key] to [data]
    in table [tbl].
 
@@ -126,37 +126,37 @@ val add : ('a, 'b) t -> 'a -> 'b -> unit
    If you desire the classic behavior of replacing elements,
    see {!replace}. *)
 
-val find : ('a, 'b) t -> 'a -> 'b
+val find : t('a, 'b) -> 'a -> 'b
 (** [Hashtbl.find tbl x] returns the current binding of [x] in [tbl],
    or raises [Not_found] if no such binding exists. *)
 
-val find_opt : ('a, 'b) t -> 'a -> 'b option
+val find_opt : t('a, 'b) -> 'a -> option('b)
 (** [Hashtbl.find_opt tbl x] returns the current binding of [x] in [tbl],
     or [None] if no such binding exists.
     @since 4.05 *)
 
-val find_all : ('a, 'b) t -> 'a -> 'b list
+val find_all : t('a, 'b) -> 'a -> list('b)
 (** [Hashtbl.find_all tbl x] returns the list of all data
    associated with [x] in [tbl].
    The current binding is returned first, then the previous
    bindings, in reverse order of introduction in the table. *)
 
-val mem : ('a, 'b) t -> 'a -> bool
+val mem : t('a, 'b) -> 'a -> bool
 (** [Hashtbl.mem tbl x] checks if [x] is bound in [tbl]. *)
 
-val remove : ('a, 'b) t -> 'a -> unit
+val remove : t('a, 'b) -> 'a -> unit
 (** [Hashtbl.remove tbl x] removes the current binding of [x] in [tbl],
    restoring the previous binding if it exists.
    It does nothing if [x] is not bound in [tbl]. *)
 
-val replace : ('a, 'b) t -> 'a -> 'b -> unit
+val replace : t('a, 'b) -> 'a -> 'b -> unit
 (** [Hashtbl.replace tbl key data] replaces the current binding of [key]
    in [tbl] by a binding of [key] to [data].  If [key] is unbound in [tbl],
    a binding of [key] to [data] is added to [tbl].
    This is functionally equivalent to {!remove}[ tbl key]
    followed by {!add}[ tbl key data]. *)
 
-val iter : ('a -> 'b -> unit) -> ('a, 'b) t -> unit
+val iter : ('a -> 'b -> unit) -> t('a, 'b) -> unit
 (** [Hashtbl.iter f tbl] applies [f] to all bindings in table [tbl].
    [f] receives the key as first argument, and the associated value
    as second argument. Each binding is presented exactly once to [f].
@@ -176,7 +176,7 @@ val iter : ('a -> 'b -> unit) -> ('a, 'b) t -> unit
    by [f] during the iteration.
 *)
 
-val filter_map_inplace: ('a -> 'b -> 'b option) -> ('a, 'b) t ->
+val filter_map_inplace: ('a -> 'b -> option('b)) -> t('a, 'b) ->
     unit
 (** [Hashtbl.filter_map_inplace f tbl] applies [f] to all bindings in
     table [tbl] and update each binding depending on the result of
@@ -188,7 +188,7 @@ val filter_map_inplace: ('a -> 'b -> 'b option) -> ('a, 'b) t ->
     @since 4.03 *)
 
 val fold :
-  ('a -> 'b -> 'acc -> 'acc) -> ('a, 'b) t -> 'acc -> 'acc
+  ('a -> 'b -> 'acc -> 'acc) -> t('a, 'b) -> 'acc -> 'acc
 (** [Hashtbl.fold f tbl init] computes
    [(f kN dN ... (f k1 d1 init)...)],
    where [k1 ... kN] are the keys of all bindings in [tbl],
@@ -210,7 +210,7 @@ val fold :
    by [f] during the iteration.
 *)
 
-val length : ('a, 'b) t -> int
+val length : t('a, 'b) -> int
 (** [Hashtbl.length tbl] returns the number of bindings in [tbl].
    It takes constant time.  Multiple bindings are counted once each, so
    [Hashtbl.length] gives the number of times [Hashtbl.iter] calls its
@@ -241,7 +241,7 @@ val is_randomized : unit -> bool
     @since 4.03 *)
 
 val rebuild : ?random (* thwart tools/sync_stdlib_docs *) :bool ->
-    ('a, 'b) t -> ('a, 'b) t
+    t('a, 'b) -> t('a, 'b)
 (** Return a copy of the given hashtable.  Unlike {!copy},
     {!rebuild}[ h] re-hashes all the (key, value) entries of
     the original table [h].  The returned hash table is randomized if
@@ -266,13 +266,13 @@ type statistics = {
     (** Number of buckets in the table. *)
   max_bucket_length: int;
     (** Maximal number of bindings per bucket. *)
-  bucket_histogram: int array
+  bucket_histogram: array(int)
     (** Histogram of bucket sizes.  This array [histo] has
         length [max_bucket_length + 1].  The value of
         [histo.(i)] is the number of buckets whose size is [i]. *)
 }
 
-val stats : ('a, 'b) t -> statistics
+val stats : t('a, 'b) -> statistics
 (** [Hashtbl.stats tbl] returns statistics about the table [tbl]:
    number of buckets, size of the biggest bucket, distribution of
    buckets by size.
@@ -280,7 +280,7 @@ val stats : ('a, 'b) t -> statistics
 
 (** {1 Hash tables and Sequences} *)
 
-val to_seq : ('a,'b) t -> ('a * 'b) Seq.t
+val to_seq : t('a, 'b) -> Seq.t('a * 'b)
 (** Iterate on the whole table.  The order in which the bindings
     appear in the sequence is unspecified. However, if the table contains
     several bindings for the same key, they appear in reversed order of
@@ -291,23 +291,23 @@ val to_seq : ('a,'b) t -> ('a * 'b) Seq.t
 
     @since 4.07 *)
 
-val to_seq_keys : ('a,_) t -> 'a Seq.t
+val to_seq_keys : t('a, _) -> Seq.t('a)
 (** Same as [Seq.map fst (to_seq m)]
     @since 4.07 *)
 
-val to_seq_values : (_,'b) t -> 'b Seq.t
+val to_seq_values : t(_, 'b) -> Seq.t('b)
 (** Same as [Seq.map snd (to_seq m)]
     @since 4.07 *)
 
-val add_seq : ('a,'b) t -> ('a * 'b) Seq.t -> unit
+val add_seq : t('a, 'b) -> Seq.t('a * 'b) -> unit
 (** Add the given bindings to the table, using {!add}
     @since 4.07 *)
 
-val replace_seq : ('a,'b) t -> ('a * 'b) Seq.t -> unit
+val replace_seq : t('a, 'b) -> Seq.t('a * 'b) -> unit
 (** Add the given bindings to the table, using {!replace}
     @since 4.07 *)
 
-val of_seq : ('a * 'b) Seq.t -> ('a, 'b) t
+val of_seq : Seq.t('a * 'b) -> t('a, 'b)
 (** Build a table from the given bindings. The bindings are added
     in the same order they appear in the sequence, using {!replace_seq},
     which means that if two pairs have the same key, only the latest one
@@ -372,47 +372,47 @@ module type HashedType =
 module type S =
   sig
     type key
-    type !'a t
-    val create : int -> 'a t
-    val clear : 'a t -> unit
-    val reset : 'a t -> unit (** @since 4.00 *)
+    type t(!'a)
+    val create : int -> t('a)
+    val clear : t('a) -> unit
+    val reset : t('a) -> unit (** @since 4.00 *)
 
-    val copy : 'a t -> 'a t
-    val add : 'a t -> key -> 'a -> unit
-    val remove : 'a t -> key -> unit
-    val find : 'a t -> key -> 'a
-    val find_opt : 'a t -> key -> 'a option
+    val copy : t('a) -> t('a)
+    val add : t('a) -> key -> 'a -> unit
+    val remove : t('a) -> key -> unit
+    val find : t('a) -> key -> 'a
+    val find_opt : t('a) -> key -> option('a)
     (** @since 4.05 *)
 
-    val find_all : 'a t -> key -> 'a list
-    val replace : 'a t -> key -> 'a -> unit
-    val mem : 'a t -> key -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val filter_map_inplace: (key -> 'a -> 'a option) -> 'a t ->
+    val find_all : t('a) -> key -> list('a)
+    val replace : t('a) -> key -> 'a -> unit
+    val mem : t('a) -> key -> bool
+    val iter : (key -> 'a -> unit) -> t('a) -> unit
+    val filter_map_inplace: (key -> 'a -> option('a)) -> t('a) ->
       unit
     (** @since 4.03 *)
 
     val fold :
-      (key -> 'a -> 'acc -> 'acc) -> 'a t -> 'acc -> 'acc
-    val length : 'a t -> int
-    val stats: 'a t -> statistics (** @since 4.00 *)
+      (key -> 'a -> 'acc -> 'acc) -> t('a) -> 'acc -> 'acc
+    val length : t('a) -> int
+    val stats: t('a) -> statistics (** @since 4.00 *)
 
-    val to_seq : 'a t -> (key * 'a) Seq.t
+    val to_seq : t('a) -> Seq.t(key * 'a)
     (** @since 4.07 *)
 
-    val to_seq_keys : _ t -> key Seq.t
+    val to_seq_keys : t(_) -> Seq.t(key)
     (** @since 4.07 *)
 
-    val to_seq_values : 'a t -> 'a Seq.t
+    val to_seq_values : t('a) -> Seq.t('a)
     (** @since 4.07 *)
 
-    val add_seq : 'a t -> (key * 'a) Seq.t -> unit
+    val add_seq : t('a) -> Seq.t(key * 'a) -> unit
     (** @since 4.07 *)
 
-    val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
+    val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
     (** @since 4.07 *)
 
-    val of_seq : (key * 'a) Seq.t -> 'a t
+    val of_seq : Seq.t(key * 'a) -> t('a)
     (** @since 4.07 *)
   end
 (** The output signature of the functor {!Make}. *)
@@ -450,46 +450,46 @@ module type SeededHashedType =
 module type SeededS =
   sig
     type key
-    type !'a t
+    type t(!'a)
     val create : ?random (* thwart tools/sync_stdlib_docs *) :bool ->
-                 int -> 'a t
-    val clear : 'a t -> unit
-    val reset : 'a t -> unit
-    val copy : 'a t -> 'a t
-    val add : 'a t -> key -> 'a -> unit
-    val remove : 'a t -> key -> unit
-    val find : 'a t -> key -> 'a
-    val find_opt : 'a t -> key -> 'a option (** @since 4.05 *)
+                 int -> t('a)
+    val clear : t('a) -> unit
+    val reset : t('a) -> unit
+    val copy : t('a) -> t('a)
+    val add : t('a) -> key -> 'a -> unit
+    val remove : t('a) -> key -> unit
+    val find : t('a) -> key -> 'a
+    val find_opt : t('a) -> key -> option('a) (** @since 4.05 *)
 
-    val find_all : 'a t -> key -> 'a list
-    val replace : 'a t -> key -> 'a -> unit
-    val mem : 'a t -> key -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val filter_map_inplace: (key -> 'a -> 'a option) -> 'a t ->
+    val find_all : t('a) -> key -> list('a)
+    val replace : t('a) -> key -> 'a -> unit
+    val mem : t('a) -> key -> bool
+    val iter : (key -> 'a -> unit) -> t('a) -> unit
+    val filter_map_inplace: (key -> 'a -> option('a)) -> t('a) ->
       unit
     (** @since 4.03 *)
 
     val fold :
-      (key -> 'a -> 'acc -> 'acc) -> 'a t -> 'acc -> 'acc
-    val length : 'a t -> int
-    val stats: 'a t -> statistics
+      (key -> 'a -> 'acc -> 'acc) -> t('a) -> 'acc -> 'acc
+    val length : t('a) -> int
+    val stats: t('a) -> statistics
 
-    val to_seq : 'a t -> (key * 'a) Seq.t
+    val to_seq : t('a) -> Seq.t(key * 'a)
     (** @since 4.07 *)
 
-    val to_seq_keys : _ t -> key Seq.t
+    val to_seq_keys : t(_) -> Seq.t(key)
     (** @since 4.07 *)
 
-    val to_seq_values : 'a t -> 'a Seq.t
+    val to_seq_values : t('a) -> Seq.t('a)
     (** @since 4.07 *)
 
-    val add_seq : 'a t -> (key * 'a) Seq.t -> unit
+    val add_seq : t('a) -> Seq.t(key * 'a) -> unit
     (** @since 4.07 *)
 
-    val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
+    val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
     (** @since 4.07 *)
 
-    val of_seq : (key * 'a) Seq.t -> 'a t
+    val of_seq : Seq.t(key * 'a) -> t('a)
     (** @since 4.07 *)
   end
 (** The output signature of the functor {!MakeSeeded}.

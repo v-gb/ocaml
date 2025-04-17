@@ -20,14 +20,14 @@ type extern_flags =
 
 (* note: this type definition is used in 'runtime/debugger.c' *)
 
-external to_channel: out_channel -> 'a -> extern_flags list -> unit
+external to_channel: out_channel -> 'a -> list(extern_flags) -> unit
     = "caml_output_value"
-external to_bytes: 'a -> extern_flags list -> bytes
+external to_bytes: 'a -> list(extern_flags) -> bytes
     = "caml_output_value_to_bytes"
-external to_string: 'a -> extern_flags list -> string
+external to_string: 'a -> list(extern_flags) -> string
     = "caml_output_value_to_string"
 external to_buffer_unsafe:
-      bytes -> int -> int -> 'a -> extern_flags list -> int
+      bytes -> int -> int -> 'a -> list(extern_flags) -> int
     = "caml_output_value_to_buffer"
 
 let to_buffer buff ofs len v flags =

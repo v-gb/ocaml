@@ -13,7 +13,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type 'a t = { mutable c : 'a list; mutable len : int; }
+type t('a) = { mutable c : list('a); mutable len : int; }
 
 exception Empty
 

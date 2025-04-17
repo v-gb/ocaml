@@ -51,7 +51,7 @@ val open_text : string -> t
     distinguish between text mode and binary mode, this function behaves like
     {!open_bin}. *)
 
-val open_gen : open_flag list -> int -> string -> t
+val open_gen : list(open_flag) -> int -> string -> t
 (** [open_gen mode perm filename] opens the named file for reading, as described
     above. The extra arguments [mode] and [perm] specify the opening mode and
     file permissions.  {!open_text} and {!open_bin} are special cases of this
@@ -66,7 +66,7 @@ val with_open_text : string -> (t -> 'a) -> 'a
 (** Like {!with_open_bin}, but the channel is opened in text mode (see
     {!open_text}). *)
 
-val with_open_gen : open_flag list -> int -> string -> (t -> 'a) -> 'a
+val with_open_gen : list(open_flag) -> int -> string -> (t -> 'a) -> 'a
 (** Like {!with_open_bin}, but can specify the opening mode and file permission,
     in case the file must be created (see {!open_gen}). *)
 
@@ -80,15 +80,15 @@ val close_noerr : t -> unit
 
 (** {1:input Input} *)
 
-val input_char : t -> char option
+val input_char : t -> option(char)
 (** Read one character from the given input channel.  Returns [None] if there
     are no more characters to read. *)
 
-val input_byte : t -> int option
+val input_byte : t -> option(int)
 (** Same as {!input_char}, but return the 8-bit integer representing the
     character. Returns [None] if the end of file was reached. *)
 
-val input_line : t -> string option
+val input_line : t -> option(string)
 (** [input_line ic] reads characters from [ic] until a newline or the end of
     file is reached.  Returns the string of all characters read, without the
     newline (if any).  Returns [None] if the end of the file has been reached.
@@ -98,7 +98,7 @@ val input_line : t -> string option
     {!Sys.win32} is [true] in which case it is the sequence of characters
     [\r\n]. *)
 
-val really_input_string : t -> int -> string option
+val really_input_string : t -> int -> option(string)
 (** [really_input_string ic len] reads [len] characters from channel [ic] and
     returns them in a new string.  Returns [None] if the end of file is reached
     before [len] characters have been read.
@@ -112,7 +112,7 @@ val input_all : t -> string
     If the same channel is read concurrently by multiple threads, the returned
     string is not guaranteed to contain contiguous characters from the input. *)
 
-val input_lines : t -> string list
+val input_lines : t -> list(string)
 (** [input_lines ic] reads lines using {!input_line}
     until the end of file is reached.  It returns the list of all
     lines read, in the order they were read.  The newline characters
@@ -135,12 +135,12 @@ val input : t -> bytes -> int -> int -> int
     [buf]. *)
 
 val input_bigarray :
-  t -> (_, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t ->
+  t -> Bigarray.Array1.t(_, Bigarray.int8_unsigned_elt, Bigarray.c_layout) ->
   int -> int -> int
 (** Same as {!input}, but read the data into a bigarray.
     @since 5.2 *)
 
-val really_input : t -> bytes -> int -> int -> unit option
+val really_input : t -> bytes -> int -> int -> option(unit)
 (** [really_input ic buf pos len] reads [len] characters from channel [ic],
     storing them in byte sequence [buf], starting at character number [pos].
 
@@ -154,8 +154,8 @@ val really_input : t -> bytes -> int -> int -> unit option
     [buf]. *)
 
 val really_input_bigarray :
-  t -> (_, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t ->
-  int -> int -> unit option
+  t -> Bigarray.Array1.t(_, Bigarray.int8_unsigned_elt, Bigarray.c_layout) ->
+  int -> int -> option(unit)
 (** Same as {!really_input}, but read the data into a bigarray.
     @since 5.2 *)
 

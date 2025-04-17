@@ -23,8 +23,8 @@ open CamlinternalFormat
    (the former is in fact an alias for the latter,
     but the ambiguity warning doesn't care)
 *)
-type ('a, 'b, 'c, 'd, 'e, 'f) format6 =
-  ('a, 'b, 'c, 'd, 'e, 'f) Stdlib.format6
+type format6('a, 'b, 'c, 'd, 'e, 'f) =
+  Stdlib.format6('a, 'b, 'c, 'd, 'e, 'f)
 
 
 (* The run-time library for scanners. *)
@@ -393,11 +393,11 @@ end
 
 (* Formatted input functions. *)
 
-type ('a, 'b, 'c, 'd) scanner =
-     ('a, Scanning.in_channel, 'b, 'c, 'a -> 'd, 'd) format6 -> 'c
+type scanner('a, 'b, 'c, 'd) =
+     format6('a, Scanning.in_channel, 'b, 'c, 'a -> 'd, 'd) -> 'c
 
-type ('a, 'b, 'c, 'd) scanner_opt =
-     ('a, Scanning.in_channel, 'b, 'c, 'a -> 'd option, 'd) format6 -> 'c
+type scanner_opt('a, 'b, 'c, 'd) =
+     format6('a, Scanning.in_channel, 'b, 'c, 'a -> option('d), 'd) -> 'c
 
 (* Reporting errors. *)
 exception Scan_failure of string
@@ -1156,7 +1156,7 @@ let stopper_of_formatting_lit fmting =
 (* When all readers are taken, finally pass the list of the readers to the
    continuation k. *)
 let rec take_format_readers : type a c d e f .
-    ((d, e) heter_list -> e) -> (a, Scanning.in_channel, c, d, e, f) fmt ->
+    (heter_list(d, e) -> e) -> fmt(a, Scanning.in_channel, c, d, e, f) ->
     d =
 fun k fmt -> match fmt with
   | Reader fmt_rest ->
@@ -1199,8 +1199,8 @@ fun k fmt -> match fmt with
 
 (* Take readers associated to an fmtty coming from a Format_subst "%(...%)". *)
 and take_fmtty_format_readers : type x y a c d e f .
-    ((d, e) heter_list -> e) -> (a, Scanning.in_channel, c, d, x, y) fmtty ->
-      (y, Scanning.in_channel, c, x, e, f) fmt -> d =
+    (heter_list(d, e) -> e) -> fmtty(a, Scanning.in_channel, c, d, x, y) ->
+      fmt(y, Scanning.in_channel, c, x, e, f) -> d =
 fun k fmtty fmt -> match fmtty with
   | Reader_ty fmt_rest ->
     fun reader ->
@@ -1229,8 +1229,8 @@ fun k fmtty fmt -> match fmtty with
 
 (* Take readers associated to an ignored parameter. *)
 and take_ignored_format_readers : type x y a c d e f .
-    ((d, e) heter_list -> e) -> (a, Scanning.in_channel, c, d, x, y) ignored ->
-      (y, Scanning.in_channel, c, x, e, f) fmt -> d =
+    (heter_list(d, e) -> e) -> ignored(a, Scanning.in_channel, c, d, x, y) ->
+      fmt(y, Scanning.in_channel, c, x, e, f) -> d =
 fun k ign fmt -> match ign with
   | Ignored_reader ->
     fun reader ->
@@ -1261,8 +1261,8 @@ fun k ign fmt -> match ign with
    heterogeneous list. *)
 (* Return the heterogeneous list of scanned values. *)
 let rec make_scanf : type a c d e f.
-    Scanning.in_channel -> (a, Scanning.in_channel, c, d, e, f) fmt ->
-      (d, e) heter_list -> (a, f) heter_list =
+    Scanning.in_channel -> fmt(a, Scanning.in_channel, c, d, e, f) ->
+      heter_list(d, e) -> heter_list(a, f) =
 fun ib fmt readers -> match fmt with
   | Char rest ->
     let _ = scan_char 0 ib in
@@ -1421,11 +1421,11 @@ fun ib fmt readers -> match fmt with
 (* Reject formats containing "%*" or "%.*". *)
 (* Pass padding and precision to the generic scanner `scan'. *)
 and pad_prec_scanf : type a c d e f x y z t .
-    Scanning.in_channel -> (a, Scanning.in_channel, c, d, e, f) fmt ->
-      (d, e) heter_list -> (x, y) padding -> (y, z -> a) precision ->
+    Scanning.in_channel -> fmt(a, Scanning.in_channel, c, d, e, f) ->
+      heter_list(d, e) -> padding(x, y) -> precision(y, z -> a) ->
       (int -> int -> Scanning.in_channel -> t) ->
       (Scanning.in_channel -> z) ->
-      (x, f) heter_list =
+      heter_list(x, f) =
 fun ib fmt readers pad prec scan token -> match pad, prec with
   | No_padding, No_precision ->
     let _ = scan max_int max_int ib in
@@ -1456,7 +1456,7 @@ fun ib fmt readers pad prec scan token -> match pad, prec with
             (* Defining [scanf] and various flavors of [scanf] *)
 
 let kscanf_gen ib ef af (Format (fmt, str)) =
-  let rec apply : type a b . a -> (a, b) heter_list -> b =
+  let rec apply : type a b . a -> heter_list(a, b) -> b =
     fun f args -> match args with
     | Cons (x, r) -> apply (f x) r
     | Nil -> f
@@ -1496,8 +1496,8 @@ let scanf_opt fmt = kscanf_opt Scanning.stdin fmt
 
 (* Scanning format strings. *)
 let bscanf_format :
-  Scanning.in_channel -> ('a, 'b, 'c, 'd, 'e, 'f) format6 ->
-  (('a, 'b, 'c, 'd, 'e, 'f) format6 -> 'g) -> 'g =
+  Scanning.in_channel -> format6('a, 'b, 'c, 'd, 'e, 'f) ->
+  (format6('a, 'b, 'c, 'd, 'e, 'f) -> 'g) -> 'g =
   fun ib format f ->
     let _ = scan_caml_string max_int ib in
     let str = token_string ib in
@@ -1508,8 +1508,8 @@ let bscanf_format :
 
 
 let sscanf_format :
-  string -> ('a, 'b, 'c, 'd, 'e, 'f) format6 ->
-  (('a, 'b, 'c, 'd, 'e, 'f) format6 -> 'g) -> 'g =
+  string -> format6('a, 'b, 'c, 'd, 'e, 'f) ->
+  (format6('a, 'b, 'c, 'd, 'e, 'f) -> 'g) -> 'g =
   fun s format f -> bscanf_format (Scanning.from_string s) format f
 
 

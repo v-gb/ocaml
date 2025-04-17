@@ -112,12 +112,12 @@ module Ephemeron = struct
     if not (0 <= o && o < length e) then
       invalid_arg msg
 
-  external get_key: t -> int -> obj_t option = "caml_ephe_get_key"
+  external get_key: t -> int -> option(obj_t) = "caml_ephe_get_key"
   let get_key e o =
     raise_if_invalid_offset e o "Obj.Ephemeron.get_key";
     get_key e o
 
-  external get_key_copy: t -> int -> obj_t option = "caml_ephe_get_key_copy"
+  external get_key_copy: t -> int -> option(obj_t) = "caml_ephe_get_key_copy"
   let get_key_copy e o =
     raise_if_invalid_offset e o "Obj.Ephemeron.get_key_copy";
     get_key_copy e o
@@ -146,8 +146,8 @@ module Ephemeron = struct
     then invalid_arg "Obj.Ephemeron.blit_key"
     else if l <> 0 then blit_key e1 o1 e2 o2 l
 
-  external get_data: t -> obj_t option = "caml_ephe_get_data"
-  external get_data_copy: t -> obj_t option = "caml_ephe_get_data_copy"
+  external get_data: t -> option(obj_t) = "caml_ephe_get_data"
+  external get_data_copy: t -> option(obj_t) = "caml_ephe_get_data_copy"
   external set_data: t -> obj_t -> unit = "caml_ephe_set_data"
   external unset_data: t -> unit = "caml_ephe_unset_data"
   external check_data: t -> bool = "caml_ephe_check_data"

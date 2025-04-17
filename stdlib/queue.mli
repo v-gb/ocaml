@@ -31,7 +31,7 @@
     with a {!Mutex.t}).
 *)
 
-type !'a t
+type t(!'a)
 (** The type of queues containing elements of type ['a]. *)
 
 
@@ -39,67 +39,67 @@ exception Empty
 (** Raised when {!Queue.take} or {!Queue.peek} is applied to an empty queue. *)
 
 
-val create : unit -> 'a t
+val create : unit -> t('a)
 (** Return a new queue, initially empty. *)
 
-val add : 'a -> 'a t -> unit
+val add : 'a -> t('a) -> unit
 (** [add x q] adds the element [x] at the end of the queue [q]. *)
 
-val push : 'a -> 'a t -> unit
+val push : 'a -> t('a) -> unit
 (** [push] is a synonym for [add]. *)
 
-val take : 'a t -> 'a
+val take : t('a) -> 'a
 (** [take q] removes and returns the first element in queue [q],
    or raises {!Empty} if the queue is empty. *)
 
-val take_opt : 'a t -> 'a option
+val take_opt : t('a) -> option('a)
 (** [take_opt q] removes and returns the first element in queue [q],
    or returns [None] if the queue is empty.
    @since 4.08 *)
 
-val pop : 'a t -> 'a
+val pop : t('a) -> 'a
 (** [pop] is a synonym for [take]. *)
 
-val peek : 'a t -> 'a
+val peek : t('a) -> 'a
 (** [peek q] returns the first element in queue [q], without removing
    it from the queue, or raises {!Empty} if the queue is empty. *)
 
-val peek_opt : 'a t -> 'a option
+val peek_opt : t('a) -> option('a)
 (** [peek_opt q] returns the first element in queue [q], without removing
    it from the queue, or returns [None] if the queue is empty.
    @since 4.08 *)
 
-val top : 'a t -> 'a
+val top : t('a) -> 'a
 (** [top] is a synonym for [peek]. *)
 
-val drop : 'a t -> unit
+val drop : t('a) -> unit
 (** [drop q] removes the first element in queue [q], or raises {!Empty}
    if the queue is empty.
    @since 5.3 *)
 
-val clear : 'a t -> unit
+val clear : t('a) -> unit
 (** Discard all elements from a queue. *)
 
-val copy : 'a t -> 'a t
+val copy : t('a) -> t('a)
 (** Return a copy of the given queue. *)
 
-val is_empty : 'a t -> bool
+val is_empty : t('a) -> bool
 (** Return [true] if the given queue is empty, [false] otherwise. *)
 
-val length : 'a t -> int
+val length : t('a) -> int
 (** Return the number of elements in a queue. *)
 
-val iter : ('a -> unit) -> 'a t -> unit
+val iter : ('a -> unit) -> t('a) -> unit
 (** [iter f q] applies [f] in turn to all elements of [q],
    from the least recently entered to the most recently entered.
    The queue itself is unchanged. *)
 
-val fold : ('acc -> 'a -> 'acc) -> 'acc -> 'a t -> 'acc
+val fold : ('acc -> 'a -> 'acc) -> 'acc -> t('a) -> 'acc
 (** [fold f accu q] is equivalent to [List.fold_left f accu l],
    where [l] is the list of [q]'s elements. The queue remains
    unchanged. *)
 
-val transfer : 'a t -> 'a t -> unit
+val transfer : t('a) -> t('a) -> unit
 (** [transfer q1 q2] adds all of [q1]'s elements at the end of
    the queue [q2], then clears [q1]. It is equivalent to the
    sequence [iter (fun x -> add x q2) q1; clear q1], but runs
@@ -107,17 +107,17 @@ val transfer : 'a t -> 'a t -> unit
 
 (** {1 Iterators} *)
 
-val to_seq : 'a t -> 'a Seq.t
+val to_seq : t('a) -> Seq.t('a)
 (** Iterate on the queue, in front-to-back order.
     The behavior is not specified if the queue is modified
     during the iteration.
     @since 4.07 *)
 
-val add_seq : 'a t -> 'a Seq.t -> unit
+val add_seq : t('a) -> Seq.t('a) -> unit
 (** Add the elements from a sequence to the end of the queue.
     @since 4.07 *)
 
-val of_seq : 'a Seq.t -> 'a t
+val of_seq : Seq.t('a) -> t('a)
 (** Create a queue from a sequence.
     @since 4.07 *)
 

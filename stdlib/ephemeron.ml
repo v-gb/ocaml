@@ -16,50 +16,50 @@
 module type SeededS = sig
 
   type key
-  type !'a t
-  val create : ?random (*thwart tools/sync_stdlib_docs*) : bool -> int -> 'a t
-  val clear : 'a t -> unit
-  val reset : 'a t -> unit
-  val copy : 'a t -> 'a t
-  val add : 'a t -> key -> 'a -> unit
-  val remove : 'a t -> key -> unit
-  val find : 'a t -> key -> 'a
-  val find_opt : 'a t -> key -> 'a option
-  val find_all : 'a t -> key -> 'a list
-  val replace : 'a t -> key -> 'a -> unit
-  val mem : 'a t -> key -> bool
-  val length : 'a t -> int
-  val stats : 'a t -> Hashtbl.statistics
-  val add_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val of_seq : (key * 'a) Seq.t -> 'a t
-  val clean: 'a t -> unit
-  val stats_alive: 'a t -> Hashtbl.statistics
+  type t(!'a)
+  val create : ?random (*thwart tools/sync_stdlib_docs*) : bool -> int -> t('a)
+  val clear : t('a) -> unit
+  val reset : t('a) -> unit
+  val copy : t('a) -> t('a)
+  val add : t('a) -> key -> 'a -> unit
+  val remove : t('a) -> key -> unit
+  val find : t('a) -> key -> 'a
+  val find_opt : t('a) -> key -> option('a)
+  val find_all : t('a) -> key -> list('a)
+  val replace : t('a) -> key -> 'a -> unit
+  val mem : t('a) -> key -> bool
+  val length : t('a) -> int
+  val stats : t('a) -> Hashtbl.statistics
+  val add_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val of_seq : Seq.t(key * 'a) -> t('a)
+  val clean: t('a) -> unit
+  val stats_alive: t('a) -> Hashtbl.statistics
     (** same as {!stats} but only count the alive bindings *)
 end
 
 module type S = sig
 
   type key
-  type !'a t
-  val create : int -> 'a t
-  val clear : 'a t -> unit
-  val reset : 'a t -> unit
-  val copy : 'a t -> 'a t
-  val add : 'a t -> key -> 'a -> unit
-  val remove : 'a t -> key -> unit
-  val find : 'a t -> key -> 'a
-  val find_opt : 'a t -> key -> 'a option
-  val find_all : 'a t -> key -> 'a list
-  val replace : 'a t -> key -> 'a -> unit
-  val mem : 'a t -> key -> bool
-  val length : 'a t -> int
-  val stats : 'a t -> Hashtbl.statistics
-  val add_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
-  val of_seq : (key * 'a) Seq.t -> 'a t
-  val clean: 'a t -> unit
-  val stats_alive: 'a t -> Hashtbl.statistics
+  type t(!'a)
+  val create : int -> t('a)
+  val clear : t('a) -> unit
+  val reset : t('a) -> unit
+  val copy : t('a) -> t('a)
+  val add : t('a) -> key -> 'a -> unit
+  val remove : t('a) -> key -> unit
+  val find : t('a) -> key -> 'a
+  val find_opt : t('a) -> key -> option('a)
+  val find_all : t('a) -> key -> list('a)
+  val replace : t('a) -> key -> 'a -> unit
+  val mem : t('a) -> key -> bool
+  val length : t('a) -> int
+  val stats : t('a) -> Hashtbl.statistics
+  val add_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
+  val of_seq : Seq.t(key * 'a) -> t('a)
+  val clean: t('a) -> unit
+  val stats_alive: t('a) -> Hashtbl.statistics
     (** same as {!stats} but only count the alive bindings *)
 end
 
@@ -71,26 +71,26 @@ module GenHashTable = struct
 
   module MakeSeeded(H: sig
     type t
-    type 'a container
-    val create: t -> 'a -> 'a container
+    type container('a)
+    val create: t -> 'a -> container('a)
     val seeded_hash: int -> t -> int
-    val equal: 'a container -> t -> equal
-    val get_data: 'a container -> 'a option
-    val set_key_data: 'a container -> t -> 'a -> unit
-    val check_key: 'a container -> bool
+    val equal: container('a) -> t -> equal
+    val get_data: container('a) -> option('a)
+    val set_key_data: container('a) -> t -> 'a -> unit
+    val check_key: container('a) -> bool
   end) : SeededS with type key = H.t
   = struct
 
-    type 'a t =
+    type t('a) =
       { mutable size: int;                  (* number of entries *)
-        mutable data: 'a bucketlist array;  (* the buckets *)
+        mutable data: array(bucketlist('a));  (* the buckets *)
         seed: int;                          (* for randomization *)
         initial_size: int;                  (* initial array size *)
       }
 
-    and 'a bucketlist =
+    and bucketlist('a) =
     | Empty
-    | Cons of int (* hash of the key *) * 'a H.container * 'a bucketlist
+    | Cons of int (* hash of the key *) * H.container('a) * bucketlist('a)
 
     (** the hash of the key is kept in order to test the equality of the hash
       before the key. Same reason as for Weak.Make *)
@@ -379,27 +379,27 @@ end
 
 module ObjEph = Obj.Ephemeron
 
-let _obj_opt : Obj.t option -> 'a option = fun x ->
+let _obj_opt : option(Obj.t) -> option('a) = fun x ->
   match x with
   | None -> x
   | Some v -> Some (Obj.obj v)
 
 (** The previous function is typed so this one is also correct *)
-let obj_opt : Obj.t option -> 'a option = fun x -> Obj.magic x
+let obj_opt : option(Obj.t) -> option('a) = fun x -> Obj.magic x
 
 
 module K1 = struct
-  type ('k,'d) t = ObjEph.t
+  type t('k,'d) = ObjEph.t
 
-  let create () : ('k,'d) t = ObjEph.create 1
+  let create () : t('k, 'd) = ObjEph.create 1
 
-  let get_key (t:('k,'d) t) : 'k option = obj_opt (ObjEph.get_key t 0)
-  let set_key (t:('k,'d) t) (k:'k) : unit = ObjEph.set_key t 0 (Obj.repr k)
-  let check_key (t:('k,'d) t) : bool = ObjEph.check_key t 0
+  let get_key (t:t('k, 'd)) : option('k) = obj_opt (ObjEph.get_key t 0)
+  let set_key (t:t('k, 'd)) (k:'k) : unit = ObjEph.set_key t 0 (Obj.repr k)
+  let check_key (t:t('k, 'd)) : bool = ObjEph.check_key t 0
 
-  let get_data (t:('k,'d) t) : 'd option = obj_opt (ObjEph.get_data t)
-  let set_data (t:('k,'d) t) (d:'d) : unit = ObjEph.set_data t (Obj.repr d)
-  let unset_data (t:('k,'d) t) : unit = ObjEph.unset_data t
+  let get_data (t:t('k, 'd)) : option('d) = obj_opt (ObjEph.get_data t)
+  let set_data (t:t('k, 'd)) (d:'d) : unit = ObjEph.set_data t (Obj.repr d)
+  let unset_data (t:t('k, 'd)) : unit = ObjEph.unset_data t
 
   let make key data =
     let eph = create () in
@@ -415,7 +415,7 @@ module K1 = struct
 
   module MakeSeeded (H:Hashtbl.SeededHashedType) =
     GenHashTable.MakeSeeded(struct
-      type 'a container = (H.t,'a) t
+      type container('a) = t(H.t, 'a)
       type t = H.t
       let create k d =
         let c = create () in
@@ -454,7 +454,7 @@ module K1 = struct
 
   module Bucket = struct
 
-    type nonrec ('k, 'd) t = ('k, 'd) t list ref
+    type nonrec t('k, 'd) = ref(list(t('k, 'd)))
     let k1_make = make
     let make () = ref []
     let add b k d = b := k1_make k d :: !b
@@ -486,24 +486,24 @@ module K1 = struct
 end
 
 module K2 = struct
-  type ('k1, 'k2, 'd) t = ObjEph.t
+  type t('k1, 'k2, 'd) = ObjEph.t
 
-  let create () : ('k1,'k2,'d) t = ObjEph.create 2
+  let create () : t('k1, 'k2, 'd) = ObjEph.create 2
 
-  let get_key1 (t:('k1,'k2,'d) t) : 'k1 option = obj_opt (ObjEph.get_key t 0)
-  let set_key1 (t:('k1,'k2,'d) t) (k:'k1) : unit =
+  let get_key1 (t:t('k1, 'k2, 'd)) : option('k1) = obj_opt (ObjEph.get_key t 0)
+  let set_key1 (t:t('k1, 'k2, 'd)) (k:'k1) : unit =
     ObjEph.set_key t 0 (Obj.repr k)
-  let check_key1 (t:('k1,'k2,'d) t) : bool = ObjEph.check_key t 0
+  let check_key1 (t:t('k1, 'k2, 'd)) : bool = ObjEph.check_key t 0
 
-  let get_key2 (t:('k1,'k2,'d) t) : 'k2 option = obj_opt (ObjEph.get_key t 1)
-  let set_key2 (t:('k1,'k2,'d) t) (k:'k2) : unit =
+  let get_key2 (t:t('k1, 'k2, 'd)) : option('k2) = obj_opt (ObjEph.get_key t 1)
+  let set_key2 (t:t('k1, 'k2, 'd)) (k:'k2) : unit =
     ObjEph.set_key t 1 (Obj.repr k)
-  let check_key2 (t:('k1,'k2,'d) t) : bool = ObjEph.check_key t 1
+  let check_key2 (t:t('k1, 'k2, 'd)) : bool = ObjEph.check_key t 1
 
-  let get_data (t:('k1,'k2,'d) t) : 'd option = obj_opt (ObjEph.get_data t)
-  let set_data (t:('k1,'k2,'d) t) (d:'d) : unit =
+  let get_data (t:t('k1, 'k2, 'd)) : option('d) = obj_opt (ObjEph.get_data t)
+  let set_data (t:t('k1, 'k2, 'd)) (d:'d) : unit =
     ObjEph.set_data t (Obj.repr d)
-  let unset_data (t:('k1,'k2,'d) t) : unit = ObjEph.unset_data t
+  let unset_data (t:t('k1, 'k2, 'd)) : unit = ObjEph.unset_data t
 
   let make key1 key2 data =
     let eph = create () in
@@ -528,7 +528,7 @@ module K2 = struct
       (H1:Hashtbl.SeededHashedType)
       (H2:Hashtbl.SeededHashedType) =
     GenHashTable.MakeSeeded(struct
-      type 'a container = (H1.t,H2.t,'a) t
+      type container('a) = t(H1.t, H2.t, 'a)
       type t = H1.t * H2.t
       let create (k1,k2) d =
         let c = create () in
@@ -574,7 +574,7 @@ module K2 = struct
 
   module Bucket = struct
 
-    type nonrec ('k1, 'k2, 'd) t = ('k1, 'k2, 'd) t list ref
+    type nonrec t('k1, 'k2, 'd) = ref(list(t('k1, 'k2, 'd)))
     let k2_make = make
     let make () = ref []
     let add b k1 k2 d = b := k2_make k1 k2 d :: !b
@@ -606,19 +606,19 @@ module K2 = struct
 end
 
 module Kn = struct
-  type ('k,'d) t = ObjEph.t
+  type t('k,'d) = ObjEph.t
 
-  let create n : ('k,'d) t = ObjEph.create n
-  let length (k:('k,'d) t) : int = ObjEph.length k
+  let create n : t('k, 'd) = ObjEph.create n
+  let length (k:t('k, 'd)) : int = ObjEph.length k
 
-  let get_key (t:('k,'d) t) (n:int) : 'k option = obj_opt (ObjEph.get_key t n)
-  let set_key (t:('k,'d) t) (n:int) (k:'k) : unit =
+  let get_key (t:t('k, 'd)) (n:int) : option('k) = obj_opt (ObjEph.get_key t n)
+  let set_key (t:t('k, 'd)) (n:int) (k:'k) : unit =
     ObjEph.set_key t n (Obj.repr k)
-  let check_key (t:('k,'d) t) (n:int) : bool = ObjEph.check_key t n
+  let check_key (t:t('k, 'd)) (n:int) : bool = ObjEph.check_key t n
 
-  let get_data (t:('k,'d) t) : 'd option = obj_opt (ObjEph.get_data t)
-  let set_data (t:('k,'d) t) (d:'d) : unit = ObjEph.set_data t (Obj.repr d)
-  let unset_data (t:('k,'d) t) : unit = ObjEph.unset_data t
+  let get_data (t:t('k, 'd)) : option('d) = obj_opt (ObjEph.get_data t)
+  let set_data (t:t('k, 'd)) (d:'d) : unit = ObjEph.set_data t (Obj.repr d)
+  let unset_data (t:t('k, 'd)) : unit = ObjEph.unset_data t
 
   let make keys data =
     let l = Array.length keys in
@@ -642,8 +642,8 @@ module Kn = struct
 
   module MakeSeeded (H:Hashtbl.SeededHashedType) =
     GenHashTable.MakeSeeded(struct
-      type 'a container = (H.t,'a) t
-      type t = H.t array
+      type container('a) = t(H.t, 'a)
+      type t = array(H.t)
       let create k d =
         let c = create (Array.length k) in
         set_data c d;
@@ -686,7 +686,7 @@ module Kn = struct
         check c (length c - 1)
     end)
 
-  module Make(H: Hashtbl.HashedType): (S with type key = H.t array) =
+  module Make(H: Hashtbl.HashedType): (S with type key = array(H.t)) =
   struct
     include MakeSeeded(struct
         type t = H.t
@@ -702,7 +702,7 @@ module Kn = struct
 
   module Bucket = struct
 
-    type nonrec ('k, 'd) t = ('k, 'd) t list ref
+    type nonrec t('k, 'd) = ref(list(t('k, 'd)))
     let kn_make = make
     let make () = ref []
     let add b k d = b := kn_make k d :: !b

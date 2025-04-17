@@ -13,7 +13,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type ('a, 'e) t = ('a, 'e) result = Ok of 'a | Error of 'e
+type t('a, 'e) = result('a, 'e) = Ok of 'a | Error of 'e
 
 let ok v = Ok v
 let error e = Error e

@@ -192,7 +192,7 @@ module Array = struct
 
   external unsafe_sub : t -> int -> int -> t = "caml_floatarray_sub"
   external append_prim : t -> t -> t = "caml_floatarray_append"
-  external concat : t list -> t = "caml_floatarray_concat"
+  external concat : list(t) -> t = "caml_floatarray_concat"
 
   let check a ofs len msg =
     if ofs < 0 || len < 0 || ofs + len < 0 || ofs + len > length a then

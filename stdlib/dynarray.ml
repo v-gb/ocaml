@@ -106,12 +106,12 @@ module Dummy : sig
 
   (** {4 Dummies} *)
 
-  type 'stamp dummy
+  type dummy('stamp)
   (** The type of dummies is parametrized by a ['stamp] variable,
       so that two dummies with different stamps cannot be confused
       together. *)
 
-  type fresh_dummy = Fresh : 'stamp dummy -> fresh_dummy
+  type fresh_dummy = Fresh : dummy('stamp) -> fresh_dummy
   val fresh : unit -> fresh_dummy
   (** The type of [fresh] enforces a fresh/unknown/opaque stamp for
       the returned dummy, distinct from all previous stamps. *)
@@ -119,15 +119,15 @@ module Dummy : sig
 
   (** {4 Values or dummies} *)
 
-  type ('a, 'stamp) with_dummy
+  type with_dummy('a, 'stamp)
   (** a value of type [('a, 'stamp) with_dummy] is either a proper
       value of type ['a] or a dummy with stamp ['stamp]. *)
 
-  val of_val : 'a -> ('a, 'stamp) with_dummy
-  val of_dummy : 'stamp dummy -> ('a, 'stamp) with_dummy
+  val of_val : 'a -> with_dummy('a, 'stamp)
+  val of_dummy : dummy('stamp) -> with_dummy('a, 'stamp)
 
-  val is_dummy : ('a, 'stamp) with_dummy -> 'stamp dummy -> bool
-  val unsafe_get : ('a, 'stamp) with_dummy -> 'a
+  val is_dummy : with_dummy('a, 'stamp) -> dummy('stamp) -> bool
+  val unsafe_get : with_dummy('a, 'stamp) -> 'a
   (** [unsafe_get v] can only be called safely if [is_dummy v dummy]
       is [false].
 
@@ -147,46 +147,46 @@ module Dummy : sig
   (** {4 Arrays of values or dummies} *)
   module Array : sig
     val make :
-      int -> 'a -> dummy:'stamp dummy ->
-      ('a, 'stamp) with_dummy array
+      int -> 'a -> dummy:dummy('stamp) ->
+      array(with_dummy('a, 'stamp))
 
     val init :
-      int -> (int -> 'a) -> dummy:'stamp dummy ->
-      ('a, 'stamp) with_dummy array
+      int -> (int -> 'a) -> dummy:dummy('stamp) ->
+      array(with_dummy('a, 'stamp))
 
-    val copy : 'a array -> dummy:'stamp dummy -> ('a, 'stamp) with_dummy array
+    val copy : array('a) -> dummy:dummy('stamp) -> array(with_dummy('a, 'stamp))
 
     val unsafe_nocopy :
-      'a array -> dummy:'stamp dummy ->
-      ('a, 'stamp) with_dummy array
+      array('a) -> dummy:dummy('stamp) ->
+      array(with_dummy('a, 'stamp))
     (** [unsafe_nocopy] assumes that the input array was created
         locally and will not be used anymore (in the spirit of
         [Bytes.unsafe_to_string]), and avoids a copy of the input
         array when possible. *)
 
     val blit_array :
-      'a array -> int ->
-      ('a, 'stamp) with_dummy array -> int ->
+      array('a) -> int ->
+      array(with_dummy('a, 'stamp)) -> int ->
       len:int ->
       unit
 
     val blit :
-      ('a, 'stamp1) with_dummy array -> 'stamp1 dummy -> int ->
-      ('a, 'stamp2) with_dummy array -> 'stamp2 dummy -> int ->
+      array(with_dummy('a, 'stamp1)) -> dummy('stamp1) -> int ->
+      array(with_dummy('a, 'stamp2)) -> dummy('stamp2) -> int ->
       len:int ->
       unit
 
     val prefix :
-      ('a, 'stamp) with_dummy array ->
+      array(with_dummy('a, 'stamp)) ->
       int ->
-      ('a, 'stamp) with_dummy array
+      array(with_dummy('a, 'stamp))
 
     val extend :
-      ('a, 'stamp) with_dummy array ->
+      array(with_dummy('a, 'stamp)) ->
       length:int ->
-      dummy:'stamp dummy ->
+      dummy:dummy('stamp) ->
       new_capacity:int ->
-      ('a, 'stamp) with_dummy array
+      array(with_dummy('a, 'stamp))
   end
 end = struct
   (* We want to use a cyclic value so that No_sharing marshalling
@@ -201,8 +201,8 @@ end = struct
      (It is a bit tricky to build an object that does not contain
      functional values where marshalling fails, see [fresh ()] below
      for how we do it.) *)
-  type 'stamp dummy = < >
-  type fresh_dummy = Fresh : 'stamp dummy -> fresh_dummy
+  type dummy('stamp) = < >
+  type fresh_dummy = Fresh : dummy('stamp) -> fresh_dummy
 
   let fresh () =
     (* dummies and marshalling: we intentionally
@@ -218,12 +218,12 @@ end = struct
     r := Some dummy;
     Fresh dummy
 
-  type ('a, 'stamp) with_dummy = 'a
+  type with_dummy('a, 'stamp) = 'a
 
   let of_val v = v
 
-  let of_dummy (type a stamp) (dummy : stamp dummy) =
-    (Obj.magic dummy : (a, stamp) with_dummy)
+  let of_dummy (type a stamp) (dummy : dummy(stamp)) =
+    (Obj.magic dummy : with_dummy(a, stamp))
 
   let is_dummy v dummy =
     v == of_dummy dummy
@@ -326,11 +326,11 @@ end = struct
   end
 end
 
-type 'a t = Pack : ('a, 'stamp) t_ -> 'a t [@@unboxed]
-and ('a, 'stamp) t_ = {
+type t('a) = Pack : t_('a, 'stamp) -> t('a) [@@unboxed]
+and t_('a, 'stamp) = {
   mutable length : int;
-  mutable arr : ('a, 'stamp) Dummy.with_dummy array;
-  dummy : 'stamp Dummy.dummy;
+  mutable arr : array(Dummy.with_dummy('a, 'stamp));
+  dummy : Dummy.dummy('stamp);
 }
 
 let global_dummy = Dummy.fresh ()
@@ -465,7 +465,7 @@ let make n x =
     dummy;
   }
 
-let init (type a) n (f : int -> a) : a t =
+let init (type a) n (f : int -> a) : t(a) =
   if n < 0 then Error.negative_length_requested "init" n;
   let Dummy.Fresh dummy = global_dummy in
   let arr = Dummy.Array.init n f ~dummy in
@@ -475,7 +475,7 @@ let init (type a) n (f : int -> a) : a t =
     dummy;
   }
 
-let get (type a) (Pack a : a t) i =
+let get (type a) (Pack a : t(a)) i =
   (* This implementation will propagate an [Invalid_argument] exception
      from array lookup if the index is out of the backing array,
      instead of using our own [Error.index_out_of_bounds]. This is
@@ -495,7 +495,7 @@ let length (Pack a) = a.length
 
 let is_empty (Pack a) = (a.length = 0)
 
-let copy (type a) (Pack {length; arr; dummy} : a t) : a t =
+let copy (type a) (Pack {length; arr; dummy} : t(a)) : t(a) =
   check_valid_length length arr;
   (* use [length] as the new capacity to make
      this an O(length) operation. *)

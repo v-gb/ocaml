@@ -147,7 +147,7 @@ val blit_string :
     do not designate a valid range of [dst].
     @since 4.05 in BytesLabels *)
 
-val concat : bytes -> bytes list -> bytes
+val concat : bytes -> list(bytes) -> bytes
 (** [concat sep sl] concatenates the list of byte sequences [sl],
     inserting the separator byte sequence [sep] between each, and
     returns the result as a new byte sequence.
@@ -221,7 +221,7 @@ val index : bytes -> char -> int
     in [s].
     @raise Not_found if [c] does not occur in [s]. *)
 
-val index_opt: bytes -> char -> int option
+val index_opt: bytes -> char -> option(int)
 (** [index_opt s c] returns the index of the first occurrence of byte [c]
     in [s] or [None] if [c] does not occur in [s].
     @since 4.05 *)
@@ -231,7 +231,7 @@ val rindex : bytes -> char -> int
     in [s].
     @raise Not_found if [c] does not occur in [s]. *)
 
-val rindex_opt: bytes -> char -> int option
+val rindex_opt: bytes -> char -> option(int)
 (** [rindex_opt s c] returns the index of the last occurrence of byte [c]
     in [s] or [None] if [c] does not occur in [s].
     @since 4.05 *)
@@ -243,7 +243,7 @@ val index_from : bytes -> int -> char -> int
     @raise Invalid_argument if [i] is not a valid position in [s].
     @raise Not_found if [c] does not occur in [s] after position [i]. *)
 
-val index_from_opt: bytes -> int -> char -> int option
+val index_from_opt: bytes -> int -> char -> option(int)
 (** [index_from_opt s i c] returns the index of the first occurrence of
     byte [c] in [s] after position [i] or [None] if [c] does not occur in [s]
     after position [i].
@@ -258,7 +258,7 @@ val rindex_from : bytes -> int -> char -> int
     @raise Invalid_argument if [i+1] is not a valid position in [s].
     @raise Not_found if [c] does not occur in [s] before position [i+1]. *)
 
-val rindex_from_opt: bytes -> int -> char -> int option
+val rindex_from_opt: bytes -> int -> char -> option(int)
 (** [rindex_from_opt s i c] returns the index of the last occurrence
     of byte [c] in [s] before position [i+1] or [None] if [c] does not
     occur in [s] before position [i+1].  [rindex_opt s c] is equivalent to
@@ -457,7 +457,7 @@ let s = Bytes.of_string "hello"
 *)
 
 
-val split_on_char: char -> bytes -> bytes list
+val split_on_char: char -> bytes -> list(bytes)
 (** [split_on_char sep s] returns the list of all (possibly empty)
     subsequences of [s] that are delimited by the [sep] character.
     If [s] is empty, the result is the singleton list [[empty]].
@@ -475,16 +475,16 @@ val split_on_char: char -> bytes -> bytes list
 
 (** {1 Iterators} *)
 
-val to_seq : t -> char Seq.t
+val to_seq : t -> Seq.t(char)
 (** Iterate on the string, in increasing index order. Modifications of the
     string during iteration will be reflected in the sequence.
     @since 4.07 *)
 
-val to_seqi : t -> (int * char) Seq.t
+val to_seqi : t -> Seq.t(int * char)
 (** Iterate on the string, in increasing order, yielding indices along chars
     @since 4.07 *)
 
-val of_seq : char Seq.t -> t
+val of_seq : Seq.t(char) -> t
 (** Create a string from the generator
     @since 4.07 *)
 

@@ -55,7 +55,7 @@ val open_text : string -> t
     distinguish between text mode and binary mode, this function behaves like
     {!open_bin}. *)
 
-val open_gen : open_flag list -> int -> string -> t
+val open_gen : list(open_flag) -> int -> string -> t
 (** [open_gen mode perm filename] opens the named file for writing, as described
     above. The extra argument [mode] specifies the opening mode. The extra
     argument [perm] specifies the file permissions, in case the file must be
@@ -71,7 +71,7 @@ val with_open_text : string -> (t -> 'a) -> 'a
 (** Like {!with_open_bin}, but the channel is opened in text mode (see
     {!open_text}). *)
 
-val with_open_gen : open_flag list -> int -> string -> (t -> 'a) -> 'a
+val with_open_gen : list(open_flag) -> int -> string -> (t -> 'a) -> 'a
 (** Like {!with_open_bin}, but can specify the opening mode and file permission,
     in case the file must be created (see {!open_gen}). *)
 
@@ -114,7 +114,7 @@ val output_substring : t -> string -> int -> int -> unit
     sequence. *)
 
 val output_bigarray :
-  t -> (_, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t ->
+  t -> Bigarray.Array1.t(_, Bigarray.int8_unsigned_elt, Bigarray.c_layout) ->
   int -> int -> unit
 (** Same as {!output} but take the data from a bigarray.
     @since 5.2 *)

@@ -126,7 +126,7 @@ val blit :
     {b Note.} The {!Stdlib.( ^ )} binary operator concatenates two
     strings. *)
 
-val concat : sep:string -> string list -> string
+val concat : sep:string -> list(string) -> string
 (** [concat ~sep ss] concatenates the list of strings [ss], inserting
     the separator string [sep] between each.
 
@@ -192,7 +192,7 @@ val sub : string -> pos:int -> len:int -> string
     @raise Invalid_argument if [pos] and [len] do not designate a valid
     substring of [s]. *)
 
-val split_on_char : sep:char -> string -> string list
+val split_on_char : sep:char -> string -> list(string)
 (** [split_on_char ~sep s] is the list of all (possibly empty)
     substrings of [s] that are delimited by the character [sep].
     If [s] is empty, the result is the singleton list [[""]].
@@ -306,7 +306,7 @@ val index_from : string -> int -> char -> int
     @raise Invalid_argument if [i] is not a valid position in [s]. *)
 
 
-val index_from_opt : string -> int -> char -> int option
+val index_from_opt : string -> int -> char -> option(int)
 (** [index_from_opt s i c] is the index of the first occurrence of [c]
     in [s] after position [i] (if any).
 
@@ -320,7 +320,7 @@ val rindex_from : string -> int -> char -> int
     @raise Not_found if [c] does not occur in [s] before position [i+1].
     @raise Invalid_argument if [i+1] is not a valid position in [s]. *)
 
-val rindex_from_opt : string -> int -> char -> int option
+val rindex_from_opt : string -> int -> char -> option(int)
 (** [rindex_from_opt s i c] is the index of the last occurrence of [c]
     in [s] before position [i+1] (if any).
 
@@ -330,7 +330,7 @@ val rindex_from_opt : string -> int -> char -> int option
 val index : string -> char -> int
 (** [index s c] is {!String.index_from}[ s 0 c]. *)
 
-val index_opt : string -> char -> int option
+val index_opt : string -> char -> option(int)
 (** [index_opt s c] is {!String.index_from_opt}[ s 0 c].
 
     @since 4.05 *)
@@ -338,25 +338,25 @@ val index_opt : string -> char -> int option
 val rindex : string -> char -> int
 (** [rindex s c] is {!String.rindex_from}[ s (length s - 1) c]. *)
 
-val rindex_opt : string -> char -> int option
+val rindex_opt : string -> char -> option(int)
 (** [rindex_opt s c] is {!String.rindex_from_opt}[ s (length s - 1) c].
 
     @since 4.05 *)
 
 (** {1 Strings and Sequences} *)
 
-val to_seq : t -> char Seq.t
+val to_seq : t -> Seq.t(char)
 (** [to_seq s] is a sequence made of the string's characters in
     increasing order.
 
     @since 4.07 *)
 
-val to_seqi : t -> (int * char) Seq.t
+val to_seqi : t -> Seq.t(int * char)
 (** [to_seqi s] is like {!to_seq} but also tuples the corresponding index.
 
     @since 4.07 *)
 
-val of_seq : char Seq.t -> t
+val of_seq : Seq.t(char) -> t
 (** [of_seq s] is a string made of the sequence's characters.
 
     @since 4.07 *)
@@ -422,7 +422,7 @@ val edit_distance : ?limit:int -> t -> t -> int
 
 val spellcheck :
   ?max_dist:(string -> int) -> ((string -> unit) -> unit) -> string ->
-  string list
+  list(string)
 (** [spellcheck iter_dict s] are the strings enumerated by the
     iterator [iter_dict] whose {{!edit_distance}edit distance} to [s]
     is the smallest and at most [max_dist s]. If multiple corrections

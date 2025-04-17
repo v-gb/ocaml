@@ -60,7 +60,7 @@ type closure = item
 type t = DummyA | DummyB | DummyC of int
 let _ = [DummyA; DummyB; DummyC 0] (* to avoid warnings *)
 
-type obj = t array
+type obj = array(t)
 external ret : (obj -> 'a) -> closure = "%identity"
 
 (**** Labels ****)
@@ -81,27 +81,26 @@ let public_method_label s : tag =
 
 module Vars =
   Map.Make(struct type t = string let compare (x:t) y = compare x y end)
-type vars = int Vars.t
+type vars = Vars.t(int)
 
 module Meths =
   Map.Make(struct type t = string let compare (x:t) y = compare x y end)
-type meths = label Meths.t
+type meths = Meths.t(label)
 module Labs =
   Map.Make(struct type t = label let compare (x:t) y = compare x y end)
-type labs = bool Labs.t
+type labs = Labs.t(bool)
 
 (* The compiler assumes that the first field of this structure is [size]. *)
 type table =
  { mutable size: int;
-   mutable methods: closure array;
+   mutable methods: array(closure);
    mutable methods_by_name: meths;
    mutable methods_by_label: labs;
    mutable previous_states:
-     (meths * labs * (label * item) list * vars *
-      label list * string list) list;
-   mutable hidden_meths: (label * item) list;
+     list(meths * labs * list(label * item) * vars * list(label) * list(string));
+   mutable hidden_meths: list(label * item);
    mutable vars: vars;
-   mutable initializers: (obj -> unit) list }
+   mutable initializers: list(obj -> unit) }
 
 let dummy_table =
   { methods = [| dummy_item |];
@@ -320,7 +319,7 @@ let inherits cla vals virt_meths concr_meths (_, super, env) top =
   widen cla;
   Array.concat
     [[| Obj.repr init |];
-     Obj.magic (Array.map (get_variable cla) (to_array vals) : int array);
+     Obj.magic (Array.map (get_variable cla) (to_array vals) : array(int));
      Array.map
        (fun nm -> Obj.repr (get_method cla (get_method_label cla nm) : closure))
        (to_array concr_meths) ]

@@ -18,18 +18,18 @@
 (* We do dynamic hashing, and resize the table and rehash the elements
    when the load factor becomes too high. *)
 
-type ('a, 'b) t =
+type t('a, 'b) =
   { mutable size: int;                        (* number of entries *)
-    mutable data: ('a, 'b) bucketlist array;  (* the buckets *)
+    mutable data: array(bucketlist('a, 'b));  (* the buckets *)
     seed: int;                        (* for randomization *)
     mutable initial_size: int;                (* initial array size *)
   }
 
-and ('a, 'b) bucketlist =
+and bucketlist('a, 'b) =
     Empty
   | Cons of { mutable key: 'a;
               mutable data: 'b;
-              mutable next: ('a, 'b) bucketlist }
+              mutable next: bucketlist('a, 'b) }
 
 (* The sign of initial_size encodes the fact that a traversal is
    ongoing or not.
@@ -229,7 +229,7 @@ type statistics = {
   num_bindings: int;
   num_buckets: int;
   max_bucket_length: int;
-  bucket_histogram: int array
+  bucket_histogram: array(int)
 }
 
 let rec bucket_length accu = function
@@ -290,64 +290,64 @@ module type SeededHashedType =
 module type S =
   sig
     type key
-    type !'a t
-    val create: int -> 'a t
-    val clear : 'a t -> unit
-    val reset : 'a t -> unit
-    val copy: 'a t -> 'a t
-    val add: 'a t -> key -> 'a -> unit
-    val remove: 'a t -> key -> unit
-    val find: 'a t -> key -> 'a
-    val find_opt: 'a t -> key -> 'a option
-    val find_all: 'a t -> key -> 'a list
-    val replace : 'a t -> key -> 'a -> unit
-    val mem : 'a t -> key -> bool
-    val iter: (key -> 'a -> unit) -> 'a t -> unit
-    val filter_map_inplace: (key -> 'a -> 'a option) -> 'a t -> unit
-    val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val length: 'a t -> int
-    val stats: 'a t -> statistics
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_keys : _ t -> key Seq.t
-    val to_seq_values : 'a t -> 'a Seq.t
-    val add_seq : 'a t -> (key * 'a) Seq.t -> unit
-    val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
-    val of_seq : (key * 'a) Seq.t -> 'a t
+    type t(!'a)
+    val create: int -> t('a)
+    val clear : t('a) -> unit
+    val reset : t('a) -> unit
+    val copy: t('a) -> t('a)
+    val add: t('a) -> key -> 'a -> unit
+    val remove: t('a) -> key -> unit
+    val find: t('a) -> key -> 'a
+    val find_opt: t('a) -> key -> option('a)
+    val find_all: t('a) -> key -> list('a)
+    val replace : t('a) -> key -> 'a -> unit
+    val mem : t('a) -> key -> bool
+    val iter: (key -> 'a -> unit) -> t('a) -> unit
+    val filter_map_inplace: (key -> 'a -> option('a)) -> t('a) -> unit
+    val fold: (key -> 'a -> 'b -> 'b) -> t('a) -> 'b -> 'b
+    val length: t('a) -> int
+    val stats: t('a) -> statistics
+    val to_seq : t('a) -> Seq.t(key * 'a)
+    val to_seq_keys : t(_) -> Seq.t(key)
+    val to_seq_values : t('a) -> Seq.t('a)
+    val add_seq : t('a) -> Seq.t(key * 'a) -> unit
+    val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
+    val of_seq : Seq.t(key * 'a) -> t('a)
   end
 
 module type SeededS =
   sig
     type key
-    type !'a t
-    val create : ?random:bool -> int -> 'a t
-    val clear : 'a t -> unit
-    val reset : 'a t -> unit
-    val copy : 'a t -> 'a t
-    val add : 'a t -> key -> 'a -> unit
-    val remove : 'a t -> key -> unit
-    val find : 'a t -> key -> 'a
-    val find_opt: 'a t -> key -> 'a option
-    val find_all : 'a t -> key -> 'a list
-    val replace : 'a t -> key -> 'a -> unit
-    val mem : 'a t -> key -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val filter_map_inplace: (key -> 'a -> 'a option) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val length : 'a t -> int
-    val stats: 'a t -> statistics
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_keys : _ t -> key Seq.t
-    val to_seq_values : 'a t -> 'a Seq.t
-    val add_seq : 'a t -> (key * 'a) Seq.t -> unit
-    val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
-    val of_seq : (key * 'a) Seq.t -> 'a t
+    type t(!'a)
+    val create : ?random:bool -> int -> t('a)
+    val clear : t('a) -> unit
+    val reset : t('a) -> unit
+    val copy : t('a) -> t('a)
+    val add : t('a) -> key -> 'a -> unit
+    val remove : t('a) -> key -> unit
+    val find : t('a) -> key -> 'a
+    val find_opt: t('a) -> key -> option('a)
+    val find_all : t('a) -> key -> list('a)
+    val replace : t('a) -> key -> 'a -> unit
+    val mem : t('a) -> key -> bool
+    val iter : (key -> 'a -> unit) -> t('a) -> unit
+    val filter_map_inplace: (key -> 'a -> option('a)) -> t('a) -> unit
+    val fold : (key -> 'a -> 'b -> 'b) -> t('a) -> 'b -> 'b
+    val length : t('a) -> int
+    val stats: t('a) -> statistics
+    val to_seq : t('a) -> Seq.t(key * 'a)
+    val to_seq_keys : t(_) -> Seq.t(key)
+    val to_seq_values : t('a) -> Seq.t('a)
+    val add_seq : t('a) -> Seq.t(key * 'a) -> unit
+    val replace_seq : t('a) -> Seq.t(key * 'a) -> unit
+    val of_seq : Seq.t(key * 'a) -> t('a)
   end
 
 module MakeSeeded(H: SeededHashedType): (SeededS with type key = H.t) =
   struct
     type key = H.t
-    type 'a hashtbl = (key, 'a) t
-    type 'a t = 'a hashtbl
+    type hashtbl('a) = t(key, 'a)
+    type t('a) = hashtbl('a)
     let create = create
     let clear = clear
     let reset = reset

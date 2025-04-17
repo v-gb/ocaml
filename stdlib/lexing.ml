@@ -39,7 +39,7 @@ type lexbuf =
     mutable lex_last_pos : int;
     mutable lex_last_action : int;
     mutable lex_eof_reached : bool;
-    mutable lex_mem : int array;
+    mutable lex_mem : array(int);
     mutable lex_start_p : position;
     mutable lex_curr_p : position;
   }

@@ -492,10 +492,10 @@ module Memprof :
        type of records passed to the callback triggered by the
        sampling of an allocation. *)
 
-    type ('minor, 'major) tracker = {
-      alloc_minor: allocation -> 'minor option;
-      alloc_major: allocation -> 'major option;
-      promote: 'minor -> 'major option;
+    type tracker('minor, 'major) = {
+      alloc_minor: allocation -> option('minor);
+      alloc_major: allocation -> option('major);
+      promote: 'minor -> option('major);
       dealloc_minor: 'minor -> unit;
       dealloc_major: 'major -> unit;
     }
@@ -512,13 +512,13 @@ module Memprof :
        returns [None], memprof stops tracking the corresponding block.
        *)
 
-    val null_tracker: ('minor, 'major) tracker
+    val null_tracker: tracker('minor, 'major)
     (** Default callbacks simply return [None] or [()] *)
 
     val start :
       sampling_rate:float ->
       ?callstack_size:int ->
-      ('minor, 'major) tracker ->
+      tracker('minor, 'major) ->
       t
     (** Start a profile with the given parameters. Raises an exception
        if a profile is already sampling in the current domain.

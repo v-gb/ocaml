@@ -194,23 +194,23 @@ val add_channel : t -> in_channel -> int -> unit
 
 (** {1 Buffers and Sequences} *)
 
-val to_seq : t -> char Seq.t
+val to_seq : t -> Seq.t(char)
 (** Iterate on the buffer, in increasing order.
 
     The behavior is not specified if the buffer is modified during iteration.
     @since 4.07 *)
 
-val to_seqi : t -> (int * char) Seq.t
+val to_seqi : t -> Seq.t(int * char)
 (** Iterate on the buffer, in increasing order, yielding indices along chars.
 
     The behavior is not specified if the buffer is modified during iteration.
     @since 4.07 *)
 
-val add_seq : t -> char Seq.t -> unit
+val add_seq : t -> Seq.t(char) -> unit
 (** Add chars to the buffer
     @since 4.07 *)
 
-val of_seq : char Seq.t -> t
+val of_seq : Seq.t(char) -> t
 (** Create a buffer from the generator
     @since 4.07 *)
 

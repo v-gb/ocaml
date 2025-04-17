@@ -59,7 +59,7 @@ type extern_flags =
 
 (** The flags to the [Marshal.to_*] functions below. *)
 
-val to_channel : out_channel -> 'a -> extern_flags list -> unit
+val to_channel : out_channel -> 'a -> list(extern_flags) -> unit
 (** [Marshal.to_channel chan v flags] writes the representation
    of [v] on channel [chan]. The [flags] argument is a
    possibly empty list of flags that governs the marshaling
@@ -114,7 +114,7 @@ val to_channel : out_channel -> 'a -> extern_flags list -> unit
  *)
 
 external to_bytes :
-  'a -> extern_flags list -> bytes = "caml_output_value_to_bytes"
+  'a -> list(extern_flags) -> bytes = "caml_output_value_to_bytes"
 (** [Marshal.to_bytes v flags] returns a byte sequence containing
    the representation of [v].
    The [flags] argument has the same meaning as for
@@ -122,11 +122,11 @@ external to_bytes :
    @since 4.02 *)
 
 external to_string :
-  'a -> extern_flags list -> string = "caml_output_value_to_string"
+  'a -> list(extern_flags) -> string = "caml_output_value_to_string"
 (** Same as [to_bytes] but return the result as a string instead of
     a byte sequence. *)
 
-val to_buffer : bytes -> int -> int -> 'a -> extern_flags list -> int
+val to_buffer : bytes -> int -> int -> 'a -> list(extern_flags) -> int
 (** [Marshal.to_buffer buff ofs len v flags] marshals the value [v],
    storing its byte representation in the sequence [buff],
    starting at index [ofs], and writing at most

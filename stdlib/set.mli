@@ -111,7 +111,7 @@ module type S =
 
     (** {1:elements Elements} *)
 
-    val elements: t -> elt list
+    val elements: t -> list(elt)
     (** Return the list of all elements of the given set.
         The returned list is sorted in increasing order with respect
         to the ordering [Ord.compare], where [Ord] is the argument
@@ -122,7 +122,7 @@ module type S =
         (with respect to the [Ord.compare] ordering), or raise
         [Not_found] if the set is empty. *)
 
-    val min_elt_opt: t -> elt option
+    val min_elt_opt: t -> option(elt)
     (** Return the smallest element of the given set
         (with respect to the [Ord.compare] ordering), or [None]
         if the set is empty.
@@ -132,7 +132,7 @@ module type S =
     (** Same as {!min_elt}, but returns the largest element of the
         given set. *)
 
-    val max_elt_opt: t -> elt option
+    val max_elt_opt: t -> option(elt)
     (** Same as {!min_elt_opt}, but returns the largest element of the
         given set.
         @since 4.05 *)
@@ -142,7 +142,7 @@ module type S =
         the set is empty. Which element is chosen is unspecified,
         but equal elements will be chosen for equal sets. *)
 
-    val choose_opt: t -> elt option
+    val choose_opt: t -> option(elt)
     (** Return one element of the given set, or [None] if
         the set is empty. Which element is chosen is unspecified,
         but equal elements will be chosen for equal sets.
@@ -156,7 +156,7 @@ module type S =
         exists.
         @since 4.01 *)
 
-    val find_opt: elt -> t -> elt option
+    val find_opt: elt -> t -> option(elt)
     (** [find_opt x s] returns the element of [s] equal to [x] (according
         to [Ord.compare]), or [None] if no such element
         exists.
@@ -174,7 +174,7 @@ module type S =
 
         @since 4.05 *)
 
-    val find_first_opt: (elt -> bool) -> t -> elt option
+    val find_first_opt: (elt -> bool) -> t -> option(elt)
     (** [find_first_opt f s], where [f] is a monotonically increasing
         function, returns an option containing the lowest element [e] of [s]
         such that [f e], or [None] if no such element exists.
@@ -187,7 +187,7 @@ module type S =
         or raises [Not_found] if no such element exists.
         @since 4.05 *)
 
-    val find_last_opt: (elt -> bool) -> t -> elt option
+    val find_last_opt: (elt -> bool) -> t -> option(elt)
     (** [find_last_opt f s], where [f] is a monotonically decreasing
         function, returns an option containing the highest element [e] of [s]
         such that [f e], or [None] if no such element exists.
@@ -225,7 +225,7 @@ module type S =
         physically equal to [s]).
         @before 4.03 Physical equality was not ensured.*)
 
-    val filter_map: (elt -> elt option) -> t -> t
+    val filter_map: (elt -> option(elt)) -> t -> t
     (** [filter_map f s] returns the set of all [v] such that
         [f x = Some v] for some element [x] of [s].
 
@@ -285,34 +285,34 @@ module type S =
 
     (** {1:converting Converting} *)
 
-    val to_list : t -> elt list
+    val to_list : t -> list(elt)
     (** [to_list s] is {!elements}[ s].
         @since 5.1 *)
 
-    val of_list: elt list -> t
+    val of_list: list(elt) -> t
     (** [of_list l] creates a set from a list of elements.
         This is usually more efficient than folding [add] over the list,
         except perhaps for lists with many duplicated elements.
         @since 4.02 *)
 
-    val to_seq_from : elt -> t -> elt Seq.t
+    val to_seq_from : elt -> t -> Seq.t(elt)
     (** [to_seq_from x s] iterates on a subset of the elements of [s]
         in ascending order, from [x] or above.
         @since 4.07 *)
 
-    val to_seq : t -> elt Seq.t
+    val to_seq : t -> Seq.t(elt)
     (** Iterate on the whole set, in ascending order
         @since 4.07 *)
 
-    val to_rev_seq : t -> elt Seq.t
+    val to_rev_seq : t -> Seq.t(elt)
     (** Iterate on the whole set, in descending order
         @since 4.12 *)
 
-    val add_seq : elt Seq.t -> t -> t
+    val add_seq : Seq.t(elt) -> t -> t
     (** Add the given elements to the set, in order.
         @since 4.07 *)
 
-    val of_seq : elt Seq.t -> t
+    val of_seq : Seq.t(elt) -> t
     (** Build a set from the given bindings
         @since 4.07 *)
   end

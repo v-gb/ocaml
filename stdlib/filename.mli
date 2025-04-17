@@ -57,7 +57,7 @@ val chop_suffix : string -> string -> string
     @raise Invalid_argument if [name] does not end with the suffix [suff].
 *)
 
-val chop_suffix_opt: suffix:string -> string -> string option
+val chop_suffix_opt: suffix:string -> string -> option(string)
 (** [chop_suffix_opt ~suffix filename] removes the suffix from
     the [filename] if possible, or returns [None] if the
     filename does not end with the suffix.
@@ -141,7 +141,7 @@ val temp_file : ?temp_dir: string -> string -> string -> string
 *)
 
 val open_temp_file :
-      ?mode: open_flag list -> ?perms: int -> ?temp_dir: string -> string ->
+      ?mode: list(open_flag) -> ?perms: int -> ?temp_dir: string -> string ->
       string -> string * out_channel
 (** Same as {!Filename.temp_file}, but returns both the name of a fresh
    temporary file, and an output channel opened (atomically) on
@@ -213,7 +213,7 @@ val quote : string -> string
 
 val quote_command :
        string -> ?stdin:string -> ?stdout:string -> ?stderr:string
-              -> string list -> string
+              -> list(string) -> string
 (** [quote_command cmd args] returns a quoted command line, suitable
     for use as an argument to {!Sys.command}, {!Unix.system}, and the
     {!Unix.open_process} functions.

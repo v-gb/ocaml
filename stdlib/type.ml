@@ -15,27 +15,27 @@
 
 (* Type equality witness *)
 
-type (_, _) eq = Equal: ('a, 'a) eq
+type eq(_, _) = Equal: eq('a, 'a)
 
 (* Type identifiers *)
 
 module Id = struct
-  type _ id = ..
+  type id(_) = ..
   module type ID = sig
     type t
-    type _ id += Id : t id
+    type _ id += Id : id(t)
   end
 
-  type !'a t = (module ID with type t = 'a)
+  type t(!'a) = (module ID with type t = 'a)
 
-  let make (type a) () : a t =
-    (module struct type t = a type _ id += Id : t id end)
+  let make (type a) () : t(a) =
+    (module struct type t = a type _ id += Id : id(t) end)
 
-  let[@inline] uid (type a) ((module A) : a t) =
+  let[@inline] uid (type a) ((module A) : t(a)) =
     Obj.Extension_constructor.id [%extension_constructor A.Id]
 
   let provably_equal
-      (type a b) ((module A) : a t) ((module B) : b t) : (a, b) eq option
+      (type a b) ((module A) : t(a)) ((module B) : t(b)) : option(eq(a, b))
     =
     match A.Id with B.Id -> Some Equal | _ -> None
 end
