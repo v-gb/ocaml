@@ -314,24 +314,22 @@ let reset_ifthenelse ctxt = { ctxt with ifthenelse=false }
 let reset_pipe ctxt = { ctxt with pipe=false }
 *)
 
-let list : 'a . ?sep:space_formatter -> ?first:space_formatter ->
-  ?last:space_formatter -> (Format.formatter -> 'a -> unit) ->
-  Format.formatter -> 'a list -> unit
-  = fun ?sep ?first ?last fu f xs ->
-    let first = match first with Some x -> x |None -> ("": _ format6)
-    and last = match last with Some x -> x |None -> ("": _ format6)
-    and sep = match sep with Some x -> x |None -> ("@ ": _ format6) in
-    let aux f = function
-      | [] -> ()
-      | [x] -> fu f x
-      | xs ->
-          let rec loop  f = function
-            | [x] -> fu f x
-            | x::xs ->  fu f x; pp f sep; loop f xs;
-            | _ -> assert false in begin
-            pp f first; loop f xs; pp f last;
-          end in
-    aux f xs
+let list : 'a . ?wrap1:bool -> ?sep:space_formatter
+  -> ?first:space_formatter -> ?last:space_formatter
+   -> (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a list -> unit
+  = fun ?(wrap1 = false) ?sep ?first ?last fu f xs ->
+    match xs with
+    | [] -> ()
+    | [x] when not wrap1 -> fu f x
+    | xs ->
+       let sep = Option.value sep ~default:("@ ": _ format6) in
+       let rec loop  f = function
+         | [x] -> fu f x
+         | x::xs ->  fu f x; pp f sep; loop f xs;
+         | _ -> assert false in
+       pp f (Option.value first ~default:("": _ format6));
+       loop f xs;
+       pp f (Option.value last ~default:("": _ format6))
 
 let option : 'a. ?first:space_formatter -> ?last:space_formatter ->
   (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a option -> unit
@@ -397,7 +395,30 @@ let iter_loc f ctxt {txt; loc = _} = f ctxt txt
 
 let constant_string f s = pp f "%S" s
 
-
+let pp_typ_constr f pp_param loc_param params pp_name loc_name name =
+  let params_first =
+    match params with
+    | [] -> true
+    | param :: _ ->
+       not (
+           let loc1 = loc_param param in
+           let loc2 = loc_name name in
+           not loc1.loc_ghost
+           && not loc2.loc_ghost
+           && loc1.loc_start.pos_fname = loc2.loc_start.pos_fname
+           && loc1.loc_start.pos_cnum > loc2.loc_start.pos_cnum)
+  in
+  let pp_params f l =
+    match l with
+    | [] -> ()
+    | [x] when params_first -> pp f "%a@;" pp_param  x
+    | _ -> list ~wrap1:(not params_first)
+             ~first:"(" ~last:(")" ^^ if params_first then "@;" else "")
+             pp_param ~sep:",@;" f l
+  in
+  if params_first
+  then pp f "%a%a" pp_params params pp_name name
+  else pp f "%a%a" pp_name name pp_params params
 
 let tyvar ppf v = Format_doc.compat Doc.tyvar ppf v
 
@@ -455,12 +476,13 @@ and core_type1 ctxt f x =
     | Ptyp_tuple l ->
         pp f "(%a)" (list (tuple_type_component ctxt) ~sep:"@;*@;") l
     | Ptyp_constr (li, l) ->
-        pp f (* "%a%a@;" *) "%a%a"
-          (fun f l -> match l with
-             |[] -> ()
-             |[x]-> pp f "%a@;" (core_type1 ctxt)  x
-             | _ -> list ~first:"(" ~last:")@;" (core_type ctxt) ~sep:",@;" f l)
-          l (with_loc type_longident) li
+       pp_typ_constr f
+         (core_type1 ctxt)
+         (fun ty -> ty.ptyp_loc)
+         l
+         (with_loc type_longident)
+         (fun x -> x.loc)
+         li
     | Ptyp_variant (l, closed, low) ->
         let first_is_inherit = match l with
           | {Parsetree.prf_desc = Rinherit _}::_ -> true
@@ -1299,9 +1321,12 @@ and module_type ctxt f x =
 
 and with_constraint ctxt f = function
   | Pwith_type (li, ({ptype_params= ls ;_} as td)) ->
-      pp f "type@ %a %a =@ %a"
-        (type_params ctxt) ls
-        (with_loc type_longident) li (type_declaration ctxt) td
+      pp f "type@ %t =@ %a"
+        (fun f ->
+          pp_typ_constr f
+            (type_param ctxt) (fun (ty, _) -> ty.ptyp_loc) ls
+            (with_loc type_longident) (fun v -> v.loc) li)
+        (type_declaration ctxt) td
   | Pwith_module (li, li2) ->
       pp f "module %a =@ %a" value_longident_loc li value_longident_loc li2;
   | Pwith_modtype (li, mty) ->
@@ -1309,9 +1334,11 @@ and with_constraint ctxt f = function
         (with_loc type_longident) li
         (module_type ctxt) mty;
   | Pwith_typesubst (li, ({ptype_params=ls;_} as td)) ->
-      pp f "type@ %a %a :=@ %a"
-        (type_params ctxt) ls
-        (with_loc type_longident) li
+      pp f "type@ %t :=@ %a"
+        (fun f ->
+          pp_typ_constr f
+            (type_param ctxt) (fun (ty, _) -> ty.ptyp_loc) ls
+            (with_loc type_longident) (fun v -> v.loc) li)
         (type_declaration ctxt) td
   | Pwith_modsubst (li, li2) ->
       pp f "module %a :=@ %a" value_longident_loc li value_longident_loc li2
@@ -1686,10 +1713,6 @@ and structure_item ctxt f x =
 and type_param ctxt f (ct, (a,b)) =
   pp f "%s%s%a" (type_variance a) (type_injectivity b) (core_type ctxt) ct
 
-and type_params ctxt f = function
-  | [] -> ()
-  | l -> pp f "%a " (list (type_param ctxt) ~first:"(" ~last:")" ~sep:",@;") l
-
 and type_def_list ctxt f (rf, exported, l) =
   let type_decl kwd rf f x =
     let eq =
@@ -1698,10 +1721,12 @@ and type_def_list ctxt f (rf, exported, l) =
       else if exported then " ="
       else " :="
     in
-    pp f "@[<2>%s %a%a%a%s%a@]%a" kwd
+    pp f "@[<2>%s %a%t%s%a@]%a" kwd
       nonrec_flag rf
-      (type_params ctxt) x.ptype_params
-      ident_of_name x.ptype_name.txt
+      (fun f ->
+        pp_typ_constr f
+          (type_param ctxt) (fun (ty, _) -> ty.ptyp_loc) x.ptype_params
+          ident_of_name_loc (fun v -> v.loc) x.ptype_name)
       eq
       (type_declaration ctxt) x
       (item_attributes ctxt) x.ptype_attributes
@@ -1776,13 +1801,11 @@ and type_extension ctxt f x =
   let extension_constructor f x =
     pp f "@\n|@;%a" (extension_constructor ctxt) x
   in
-  pp f "@[<2>type %a%a += %a@ %a@]%a"
-    (fun f -> function
-       | [] -> ()
-       | l ->
-           pp f "%a@;" (list (type_param ctxt) ~first:"(" ~last:")" ~sep:",") l)
-    x.ptyext_params
-    (with_loc type_longident) x.ptyext_path
+  pp f "@[<2>type %t += %a@ %a@]%a"
+    (fun f ->
+      pp_typ_constr f
+        (type_param ctxt) (fun (ty, _) -> ty.ptyp_loc) x.ptyext_params
+        (with_loc type_longident) (fun v -> v.loc) x.ptyext_path)
     private_flag x.ptyext_private (* Cf: #7200 *)
     (list ~sep:"" extension_constructor)
     x.ptyext_constructors

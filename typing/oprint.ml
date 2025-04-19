@@ -333,12 +333,14 @@ and print_out_type_2 ~arg ppf =
 and print_simple_out_type ppf =
   function
     Otyp_class (id, tyl) ->
-      fprintf ppf "@[%a#%a@]" print_typargs tyl print_ident id
+     fprintf ppf "@[%t@]" (fun ppf ->
+         print_typ_constr ppf `Constr_first print_out_type tyl
+           (fun ppf id ->
+             pp_print_char ppf '#';
+             print_ident ppf id) id)
   | Otyp_constr (id, tyl) ->
-      pp_open_box ppf 0;
-      print_typargs ppf tyl;
-      print_ident ppf id;
-      pp_close_box ppf ()
+     fprintf ppf "@[%t@]" (fun ppf ->
+         print_typ_constr ppf `Constr_first print_out_type tyl print_ident id)
   | Otyp_object {fields; open_row} ->
       fprintf ppf "@[<2>< %a >@]" (print_fields open_row) fields
   | Otyp_stuff s -> pp_print_string ppf s
@@ -427,6 +429,24 @@ and print_typargs ppf =
       pp_print_char ppf ')';
       pp_close_box ppf ();
       pp_print_space ppf ()
+and print_typ_constr : type p n. _ -> _ -> (_ -> p -> unit) -> p list -> (_ -> n -> unit) -> n -> unit =
+  fun ppf order pp_param params pp_name name ->
+  match params with
+  | [] -> pp_name ppf name
+  | _ :: _ ->
+     match order with
+     | `Params_first -> 
+        fprintf ppf "@[%t@ %a@]"
+          (fun ppf ->
+            let needs_parens = List.length params >= 2 in
+            if needs_parens then pp_print_char ppf '(';
+            print_typlist pp_param "," ppf params;
+            if needs_parens then pp_print_char ppf ')')
+          pp_name name
+     | `Constr_first ->
+        fprintf ppf "@[%a(%t)@]"
+          pp_name name
+          (fun ppf -> print_typlist pp_param "," ppf params)
 and print_out_label ppf {olab_name; olab_mut; olab_type} =
   fprintf ppf "@[<2>%s%a :@ %a@];"
     (match olab_mut with
@@ -698,16 +718,9 @@ and print_out_type_decl kwd ppf td =
       td.otype_cstrs
   in
   let type_defined ppf =
-    match td.otype_params with
-      [] -> print_lident ppf td.otype_name
-    | [param] ->
-        fprintf ppf "@[%a@ %a@]" type_parameter param
-          print_lident td.otype_name
-    | _ ->
-        fprintf ppf "@[(@[%a)@]@ %a@]"
-          (print_list type_parameter (fun ppf -> fprintf ppf ",@ "))
-          td.otype_params
-          print_lident td.otype_name
+    print_typ_constr ppf `Constr_first
+      type_parameter td.otype_params
+      print_lident td.otype_name
   in
   let print_manifest ppf =
     function
@@ -795,18 +808,9 @@ and print_out_constr ppf constr =
 
 and print_out_extension_constructor ppf ext =
   let print_extended_type ppf =
-      match ext.oext_type_params with
-        [] -> fprintf ppf "%a" print_lident ext.oext_type_name
-      | [ty_param] ->
-        fprintf ppf "@[%a@ %a@]"
-          (print_type_parameter ~non_gen:false)
-          ty_param
-          print_lident ext.oext_type_name
-      | _ ->
-        fprintf ppf "@[(@[%a)@]@ %a@]"
-          (print_list print_type_parameter (fun ppf -> fprintf ppf ",@ "))
-          ext.oext_type_params
-          print_lident ext.oext_type_name
+    print_typ_constr ppf `Constr_first
+      (print_type_parameter ~non_gen:false) ext.oext_type_params
+      print_lident ext.oext_name
   in
   fprintf ppf "@[<hv 2>type %t +=%s@;<1 2>%a@]"
     print_extended_type
@@ -816,17 +820,9 @@ and print_out_extension_constructor ppf ext =
 
 and print_out_type_extension ppf te =
   let print_extended_type ppf =
-    match te.otyext_params with
-      [] -> fprintf ppf "%a" print_lident te.otyext_name
-    | [param] ->
-      fprintf ppf "@[%a@ %a@]"
-        (print_type_parameter ~non_gen:false) param
-        print_lident te.otyext_name
-    | _ ->
-        fprintf ppf "@[(@[%a)@]@ %a@]"
-          (print_list print_type_parameter (fun ppf -> fprintf ppf ",@ "))
-          te.otyext_params
-          print_lident te.otyext_name
+    print_typ_constr ppf `Constr_first
+      (print_type_parameter ~non_gen:false) te.otyext_params
+      print_lident te.otyext_name
   in
   fprintf ppf "@[<hv 2>type %t +=%s@;<1 2>%a@]"
     print_extended_type
