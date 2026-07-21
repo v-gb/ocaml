@@ -276,6 +276,7 @@ module Make(Ord: OrderedType) =
               else bal l v rr
 
     let rec union s1 s2 =
+      if s1 == s2 then s1 else
       match (s1, s2) with
         (Empty, t2) -> t2
       | (t1, Empty) -> t1
@@ -292,6 +293,7 @@ module Make(Ord: OrderedType) =
             end
 
     let rec inter s1 s2 =
+      if s1 == s2 then s1 else
       match (s1, s2) with
         (Empty, _) -> Empty
       | (_, Empty) -> Empty
@@ -335,6 +337,7 @@ module Make(Ord: OrderedType) =
             | Found -> false
 
     let rec diff s1 s2 =
+      if s1 == s2 then Empty else
       match (s1, s2) with
         (Empty, _) -> Empty
       | (t1, Empty) -> t1
@@ -370,6 +373,7 @@ module Make(Ord: OrderedType) =
       compare s1 s2 = 0
 
     let rec subset s1 s2 =
+      s1 == s2 ||
       match (s1, s2) with
         Empty, _ ->
           true
